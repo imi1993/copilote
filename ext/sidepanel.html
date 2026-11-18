@@ -37,9 +37,10 @@ html[data-theme=light] .state{color:#111318}
 #say button{background:#ffffff22;color:#fff;border-color:transparent;font-size:18px}
 #say .n{font-size:14px;color:#9aa3b2;margin-top:4px}
 .pf button.on{background:#111318;color:#fff}.pf label{display:block;font-weight:600;margin:12px 0 4px}.pf textarea{min-height:80px;width:100%}
+.lvl{display:inline-block;width:100px;height:12px;border-radius:8px;background:#d5d9e0;overflow:hidden;vertical-align:middle;margin-left:8px}.lvl i{display:block;height:100%;width:0;background:#1f9d6b;transition:width .15s}.state.warn{border:2px solid #b8860b;border-radius:14px;padding:6px 10px}.state.err2{border:2px solid #c0392b;border-radius:14px;padding:6px 10px}
 </style></head><body><script>document.documentElement.dataset.theme="light"</script>
 <div id="say" class="hide"><div class="k">À dire</div><div class="s" id="sayEn">…</div><div class="f" id="sayFr"></div><div class="n" id="sayN"></div><div class="b"><button id="sayP" aria-label="Phrase précédente">◀</button><button id="sayN2" aria-label="Phrase suivante">▶</button><button id="sayX">Fermer</button></div></div><header><h1>Copilote de réunion</h1><button id="theme">Clair / Sombre</button><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></header>
-<div class="state"><span class="dot" id="dot"></span><span id="st">Prêt. Cliquez sur l'icône du copilote (ou Alt+Maj+C) pendant la réunion.</span></div>
+<div class="state"><span class="dot" id="dot"></span><span class="lvl" title="Niveau du son de l'onglet"><i id="lvlB"></i></span> <span id="st">Prêt. Cliquez sur l'icône du copilote (ou Alt+Maj+C) pendant la réunion.</span></div>
 <div class="tabs"><button class="on" data-t="live">Direct</button><button data-t="notes">Notes</button><button data-t="lib">Comptes rendus</button><button data-t="set">Réglages</button></div>
 <main>
 <section id="live"><div class="card key"><h2>Anglais (en direct)</h2><div id="en" class="mut">En attente de l'audio…</div></div>
