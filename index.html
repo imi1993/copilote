@@ -79,6 +79,17 @@ const tabs={tLive:'live',tLib:'lib',tSet:'set'};for(const t in tabs)$('#'+t).onc
 // storage (navigateur uniquement)
 const load=()=>JSON.parse(localStorage.meetings||'[]'),save=a=>localStorage.meetings=JSON.stringify(a);
 const esc=x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');let transcript=[],ctx=[];
+// ---- anti-répétition : une phrase par ligne, rien de déjà affiché ----
+const normS=s=>s.toLowerCase().replace(/[^a-z0-9' ]/g,' ').replace(/\s+/g,' ').trim();let seenS=[];
+const EN_W=new Set("the and to of is you i that it in we for on a be have with this are was not but they at what so can will do if my your me he she there just about all one would an from or as by how when which their out up know like get go been has had were them its our more no yes okay thank thanks please hello hi well now here want need see think going said".split(' '));
+const FR_W=new Set("le la les des est que pour une un du de et pas dans qui sur avec ce cette sont nous vous je il elle ils au aux mais ou donc ne plus par comme bien oui bonjour merci très faire fait être avoir c'est j'ai".split(' '));
+function isEnglish(t){const w=t.toLowerCase().replace(/[.,!?;:"]/g,' ').split(/\s+/).filter(Boolean);if(w.length<4)return !/[éèêàçùâîôû]/i.test(t);let en=0,fr=0;for(const x of w){if(EN_W.has(x))en++;if(FR_W.has(x))fr++}
+ if(/[éèêàçùâîôû]/i.test(t)&&fr>=en)return false;return en/w.length>=0.18&&en>fr}
+function freshParts(t){if(!isEnglish(t))return [];let x=t.replace(/\s+/g,' ').trim(),p;do{p=x;x=x.replace(/(\b[^.!?]{10,}?[.!?]?)\s+\1/gi,'$1')}while(x!==p);
+ for(const y of [...seenS].sort((a,b)=>b.length-a.length)){const r=new RegExp(y.split(' ').map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join("[^a-z0-9']+"),'i');x=x.replace(r,' ')}x=x.replace(/\s+/g,' ').trim();
+ const out=[];for(let s of (x.match(/[^.!?]+[.!?]*/g)||[x])){s=s.trim();const n=normS(s);if(n.length<4)continue;
+  if(seenS.some(y=>y===n||y.includes(n)))continue;seenS.push(n);if(seenS.length>60)seenS.shift();out.push(s)}return out}
+const freshSplit=t=>(t.match(/[^.!?]+[.!?]*/g)||[t]).map(x=>x.trim()).filter(Boolean);
 // ---- À dire + profil ----
 const SAY=$('#say'),SEN=$('#sayEn'),SFR=$('#sayFr'),SNN=$('#sayN');const say=[];let si=-1;const bold=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
 function showSay(){const x=say[si];if(!x)return;SAY.classList.remove('hide');SEN.innerHTML=bold(x.en);SFR.textContent=x.fr;SNN.textContent=(si+1)+' / '+say.length}
@@ -98,7 +109,7 @@ Réponds en 3 parties séparées par "||" :
 Si on pose une question sur l'utilisatrice, utilise UNIQUEMENT le profil. Si l'information manque dans le profil, n'invente rien : partie 2 = "I **prefer** to **confirm** this and come back to you." et partie 3 = "Je préfère confirmer et revenir vers vous."`}
 
 const add=(en,fr,rep)=>{transcript.push(en);if($('#en .mut'))$('#en').innerHTML='';
- $('#en').insertAdjacentHTML('beforeend',`<p class="line en">${en}</p>`);
+ for(const p of (freshSplit(en)))$('#en').insertAdjacentHTML('beforeend',`<p class="line en">${p}</p>`);
  if(fr)$('#fr').insertAdjacentHTML('beforeend',`<p class="line fr">${fr}</p>`);
  if(rep){$('#rep').innerHTML=`<div class="reply">${rep[0]}<small>${rep[1]}</small></div>`;pushSay(rep[0].replace(/\b(send|Friday|questions)\b/,'**$1**'),rep[1])}};
 // IA : Gemini (quota gratuit) si clé fournie
@@ -112,7 +123,7 @@ $('#demo').onclick=async()=>{start();stt("Mode démo : texte d'exemple, sans son
 let stream;async function start(){$('#stop').classList.remove('hide');transcript=[];$('#fr').innerHTML='';$('#rep').innerHTML='';$('#en').innerHTML=''}
 const stt=(t,c)=>{$('#sttT').textContent=t;$('#stbar').dataset.c=c||''};const lvl=v=>{$('#lvlB').style.width=Math.min(100,Math.round(v*900))+'%'};
 const MODEL='onnx-community/whisper-base.en',CDN='https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
-async function go(mode){try{
+let noteFr=false;async function go(mode){seenS=[];noteFr=false;try{
  if(mode==='mic'){stt('Autorisez le micro dans la fenêtre du navigateur (test seule, aucun enregistrement).','w');stream=await navigator.mediaDevices.getUserMedia({audio:true})}
  else{stt("Choisissez l'ONGLET de la réunion et cochez « Partager l'audio de l'onglet ».",'w');stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true})}
  if(!stream.getAudioTracks().length){stream.getTracks().forEach(t=>t.stop());stt("Aucun son partagé. Recommencez : choisissez un ONGLET (pas une fenêtre) et cochez « Partager l'audio de l'onglet ».",'e');return}
@@ -130,7 +141,7 @@ async function go(mode){try{
   if(Date.now()-lastSound>15000&&!busy)stt("Aucun son détecté depuis 15 secondes. Vérifiez que la vidéo joue avec du son et que « Partager l'audio de l'onglet » était coché.",'e');
   if(chunks.length>=20&&!busy){busy=true;const len=chunks.reduce((s,x)=>s+x.length,0),a=new Float32Array(len);let o=0;for(const c of chunks){a.set(c,o);o+=c.length}chunks=[];
    try{if(Date.now()-lastSound<15000){stt('Transcription en cours…','ok')}
-    const r=await asr(a);const t=(r.text||'').replace(/\[[^\]]*\]|\([^)]*\)/g,'').trim();if(t.length>3){if(first){$('#en').innerHTML='';first=false}add(t);explain(t)}
+    const r=await asr(a);const t=(r.text||'').replace(/\[[^\]]*\]|\([^)]*\)/g,'').trim();const parts=freshParts(t);if(parts.length){if(first){$('#en').innerHTML='';first=false}const nt=parts.join(' ');add(nt);explain(nt);if(!localStorage.key&&!noteFr){noteFr=true;$('#fr').innerHTML='<p class="line mut">Explication en français : ajoutez une clé IA gratuite dans Réglages pour l\'activer. Le texte anglais s\'affiche déjà.</p>'}}
     if(Date.now()-lastSound<15000)stt('Écoute en cours.','ok')}
    catch(err){stt('Problème de transcription : '+(err&&err.message||err),'e')}
    busy=false}};
