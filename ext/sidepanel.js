@@ -3,6 +3,24 @@ const setFs=v=>{fs=Math.max(16,Math.min(48,v));document.documentElement.style.se
 chrome.storage.local.get(['fs'],r=>setFs(r.fs||22));chrome.storage.local.get(['theme'],r=>{document.documentElement.dataset.theme=r.theme||'light'});$('#theme').onclick=()=>{const d=document.documentElement;d.dataset.theme=d.dataset.theme==='light'?'dark':'light';chrome.storage.local.set({theme:d.dataset.theme})};$('#fm').onclick=()=>setFs(fs-3);$('#fp').onclick=()=>setFs(fs+3);
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));for(const s of ['live','notes','lib','set'])$('#'+s).classList.toggle('hide',s!==b.dataset.t);if(b.dataset.t==='lib')renderList()});
 const esc=x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+// ---- À dire + profil ----
+const say=[];let si=-1;const bold=s=>esc(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+function showSay(){const x=say[si];if(!x)return;$('#say').classList.remove('hide');$('#sayEn').innerHTML=bold(x.en);$('#sayFr').textContent=x.fr;$('#sayN').textContent=(si+1)+' / '+say.length}
+function pushSay(en,fr){say.push({en,fr});si=say.length-1;if(!$('#say').classList.contains('hide')||SAYAUTO)showSay()}
+let SAYAUTO=false;
+$('#sayP').onclick=()=>{if(si>0){si--;showSay()}};$('#sayN2').onclick=()=>{if(si<say.length-1){si++;showSay()}};$('#sayX').onclick=()=>{$('#say').classList.add('hide');SAYAUTO=false};
+document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea'))return;if(e.key==='ArrowRight')$('#sayN2').click();if(e.key==='ArrowLeft')$('#sayP').click()});
+const PF=['pf1','pf2','pf3','pf4'],PFL=['Parcours','Harmoniq AI','Offre','Ce que je cherche'];
+function profileText(p){const l=PF.map((k,i)=>p[k]&&p[k].trim()?PFL[i]+' : '+p[k].trim():'').filter(Boolean);return l.length?l.join('\n'):'(profil vide)'}
+function coachPrompt(t,prof){return `Tu es un coach de réunion pour une utilisatrice francophone qui comprend mal l'anglais. Phrase entendue (anglais) : "${t}".
+PROFIL DE L'UTILISATRICE (seule source autorisée pour parler d'elle) :
+${prof}
+Réponds en 3 parties séparées par "||" :
+1) explication simple en français, une phrase ;
+2) si une réponse de l'utilisatrice est attendue : UNE seule phrase courte (10 mots max) en anglais très facile à lire à voix haute, avec 2 ou 3 mots clés entourés de ** ; sinon "-" ;
+3) le sens de cette phrase en français, une ligne ; sinon "-".
+Si on pose une question sur l'utilisatrice, utilise UNIQUEMENT le profil. Si l'information manque dans le profil, n'invente rien : partie 2 = "I **prefer** to **confirm** this and come back to you." et partie 3 = "Je préfère confirmer et revenir vers vous."`}
 // états
 const STATES={starting:['Démarrage…',''],loading:['Préparation du moteur de transcription…',''],listening:['En écoute','on'],stopped:['Écoute arrêtée',''],error:['Problème','err']};
 function setState(m){const [t,c]=STATES[m.state]||['',''];let txt=t;if(m.platform)txt+=' ('+m.platform+')';if(m.detail)txt+=' : '+m.detail;if(m.error)txt+=' : '+m.error+'. Recliquez sur l\'icône du copilote pour réessayer.';$('#st').textContent=txt;$('#dot').className='dot '+c}
@@ -11,8 +29,8 @@ async function ai(prompt){const {key,model}=await chrome.storage.local.get(['key
  try{const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model||'gemini-2.0-flash'}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});const j=await r.json();return j.candidates?.[0]?.content?.parts?.[0]?.text||null}catch(e){return null}}
 async function onText(t){transcript.push({t,at:Date.now()});if($('#en').classList.contains('mut'))$('#en').innerHTML='',$('#en').classList.remove('mut');
  $('#en').insertAdjacentHTML('beforeend',`<p class="line en">${esc(t)}</p>`);
- const a=await ai(`Tu es un coach de réunion. Phrase entendue (anglais) : "${t}". Réponds en 2 parties séparées par "||" : 1) explication simple en français (une ou deux phrases) ; 2) si une réponse est attendue de l'utilisatrice, une phrase courte en anglais très simple suivie de son sens en français entre parenthèses, sinon laisse vide. N'invente rien.`);
- if(!a)return;const [x,y]=a.split('||');$('#fr').insertAdjacentHTML('beforeend',`<p class="line fr">${esc(x.trim())}</p>`);if(y&&y.trim())$('#rep').innerHTML=`<div class="reply">${esc(y.trim())}</div>`}
+ const {profiles={},pfActive='pro'}=await chrome.storage.local.get(['profiles','pfActive']);const a=await ai(coachPrompt(t,profileText(profiles[pfActive]||{})));
+ if(!a)return;const [x,y,z]=a.split('||').map(q=>q.trim());$('#fr').insertAdjacentHTML('beforeend',`<p class="line fr">${esc(x)}</p>`);if(y&&y!=='-'){$('#rep').innerHTML=`<div class="reply">${bold(y)}<small>${esc(z&&z!=='-'?z:'')}</small></div>`;pushSay(y,z&&z!=='-'?z:'')}}
 chrome.runtime.onMessage.addListener(m=>{if(m.to!=='panel')return;if(m.type==='state')setState(m);if(m.type==='text')onText(m.text)});
 $('#sum').onclick=async()=>{const since=Date.now()-5*60000;const txt=transcript.filter(x=>x.at>=since).map(x=>x.t).join(' ');if(!txt){$('#fr').insertAdjacentHTML('beforeend','<p class="line mut">Rien à résumer pour l\'instant.</p>');return}
  const r=await ai(`Résume en français, en 4 puces courtes maximum, sans rien inventer : ${txt}`);$('#fr').insertAdjacentHTML('beforeend',`<div class="card"><h2>Résumé (5 dernières minutes)</h2>${r?esc(r).replace(/\n/g,'<br>'):'<span class="mut">Clé IA nécessaire (Réglages).</span>'}</div>`)};
@@ -39,3 +57,11 @@ async function renderList(){const {meetings=[]}=await chrome.storage.local.get('
 $('#q').oninput=renderList;
 chrome.storage.local.get(['key','model'],r=>{if(r.model)$('#model').value=r.model;if(r.key)$('#saved').textContent='Clé enregistrée.'});
 $('#save').onclick=async()=>{const o={model:$('#model').value.trim()};if($('#key').value)o.key=$('#key').value.trim();await chrome.storage.local.set(o);$('#key').value='';$('#saved').textContent='Enregistré.'};
+
+$('#sayB').onclick=()=>{SAYAUTO=true;if(say.length)showSay();else{$('#say').classList.remove('hide');$('#sayEn').textContent="En attente d'une question…";$('#sayFr').textContent='';$('#sayN').textContent=''}};
+let PA='pro';const lab=()=>PA==='pro'?'Pro':'Perso';
+async function pfShow(){const {profiles={}}=await chrome.storage.local.get('profiles');const p=profiles[PA]||{};for(const k of PF)$('#'+k).value=p[k]||'';$('#pfA').classList.toggle('on',PA==='pro');$('#pfB').classList.toggle('on',PA==='perso');$('#pfOk').textContent='';$('#pfAct').textContent='Profil actif : '+lab();$('#pfT').textContent='Profil : '+lab()}
+async function pfSet(v){PA=v;await chrome.storage.local.set({pfActive:v});pfShow()}
+chrome.storage.local.get('pfActive',r=>{PA=r.pfActive||'pro';pfShow()});
+$('#pfA').onclick=()=>pfSet('pro');$('#pfB').onclick=()=>pfSet('perso');$('#pfT').onclick=()=>pfSet(PA==='pro'?'perso':'pro');
+$('#pfSave').onclick=async()=>{const {profiles={}}=await chrome.storage.local.get('profiles');const o={};for(const k of PF)o[k]=$('#'+k).value;profiles[PA]=o;await chrome.storage.local.set({profiles});$('#pfOk').textContent='Enregistré ('+lab()+', dans ce navigateur).'};
