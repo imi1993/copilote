@@ -1,7 +1,7 @@
 // Capture le son de l'onglet et l'envoie au moteur de transcription (page du site, dans un cadre).
 const ENGINE_ORIGIN = 'https://copilote.harmoniq-ai.fr';
 const frame = document.getElementById('engine');
-let ctx, stream, proc, chunks = [], engineReady = false, lastSound = Date.now(), tick = 0;
+let ctx, stream, proc, chunks = [], engineReady = false, lastSound = Date.now(), tick = 0, paused = false;
 const send = (o) => chrome.runtime.sendMessage({ to: 'panel', ...o }).catch(() => {});
 
 window.addEventListener('message', (e) => {
@@ -24,6 +24,7 @@ async function start(streamId) {
   src.connect(proc); proc.connect(ctx.destination);
   chunks = [];
   proc.onaudioprocess = (e) => {
+    if (paused) return;
     const d = new Float32Array(e.inputBuffer.getChannelData(0)); let m = 0; for (const x of d) m = Math.max(m, Math.abs(x));
     if (m > 0.01) lastSound = Date.now();
     if (++tick % 3 === 0) chrome.runtime.sendMessage({ to: 'panel', type: 'level', v: m, quiet: Date.now() - lastSound }).catch(() => {});
@@ -43,5 +44,7 @@ function stop() {
 chrome.runtime.onMessage.addListener((m, sender, sendResponse) => {
   if (m.to !== 'offscreen') return;
   if (m.type === 'start') { sendResponse({ ok: true }); lastSound = Date.now(); start(m.streamId).catch((e) => send({ type: 'state', state: 'error', error: String(e && e.message || e) })); }
-  if (m.type === 'stop') stop();
+  if (m.type === 'pause') { paused = true; chunks = []; send({ type: 'state', state: 'paused' }); }
+  if (m.type === 'resume') { paused = false; lastSound = Date.now(); send({ type: 'state', state: 'listening' }); }
+  if (m.type === 'stop') { paused = false; stop(); }
 });
