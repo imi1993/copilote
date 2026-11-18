@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Copilote de réunion",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "Transcription en direct, explications en français et compte rendu pour vos réunions Meet, Zoom et Teams (navigateur).",
   "minimum_chrome_version": "116",
   "permissions": ["tabCapture", "sidePanel", "offscreen", "storage", "activeTab", "tabs", "unlimitedStorage"],
