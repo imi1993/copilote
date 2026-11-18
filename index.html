@@ -2,22 +2,27 @@
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Copilote de réunion</title>
 <style>
-:root{--fs:32px;--bg:#0f1218;--card:#181d27;--line:#2a3140;--tx:#f3f5f8;--mut:#9aa6b8;--acc:#d4b46a;--ok:#6fd1a0}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:var(--fs)/1.4 "Segoe UI",system-ui,sans-serif}
-header{display:flex;gap:12px;align-items:center;padding:14px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-h1{font-size:.7em;margin:0;font-weight:600;letter-spacing:.02em;color:var(--acc);margin-right:auto}
-button{font:inherit;font-size:.5em;background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:10px 18px;cursor:pointer}
-button.p{background:var(--acc);color:#1a1405;border-color:var(--acc);font-weight:600}button:focus-visible{outline:3px solid var(--acc)}
+:root{--fs:30px;--bg:#12151c;--card:#1b2029;--line:#2b3240;--tx:#eef1f5;--mut:#98a3b5;--acc:#c9b27c;--ok:#8fd3b6;--r:22px}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#1a2030,var(--bg));color:var(--tx);font:var(--fs)/1.5 "Inter","Segoe UI",system-ui,sans-serif;letter-spacing:.005em}
+header{display:flex;gap:14px;align-items:center;padding:18px 32px;flex-wrap:wrap}
+h1{font-size:.62em;margin:0;font-weight:500;letter-spacing:.04em;color:var(--acc);margin-right:auto}
+button{font:inherit;font-size:.5em;background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:999px;padding:12px 24px;cursor:pointer;transition:background .15s,border-color .15s}
+button:hover{border-color:#44506a}button.p{background:var(--acc);color:#1b1608;border-color:var(--acc);font-weight:600}button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 nav button.on{border-color:var(--acc);color:var(--acc)}
-main{padding:20px 24px;display:grid;gap:18px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}@media(max-width:1100px){.grid{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 20px;min-height:200px}
-.card h2{margin:0 0 8px;font-size:.5em;text-transform:uppercase;letter-spacing:.12em;color:var(--mut);font-weight:600}
-.line{margin:0 0 .5em}.en{color:var(--tx)}.fr{color:var(--ok)}.reply{border-left:4px solid var(--acc);padding-left:14px;margin:0 0 .6em}.reply small{display:block;color:var(--mut);font-size:.65em}
-.mut{color:var(--mut);font-size:.6em}input,textarea{font:inherit;font-size:.55em;background:#0b0e13;color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:10px;width:100%}
-textarea{min-height:140px}.lib{display:grid;grid-template-columns:320px 1fr;gap:18px}.item{padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:.55em}.item.on{border-color:var(--acc)}
-.notice{font-size:.5em;color:var(--mut);background:#12161e;border:1px dashed var(--line);border-radius:10px;padding:8px 12px}
+main{padding:8px 32px 40px;display:grid;gap:22px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}@media(max-width:1100px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px 28px;min-height:210px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+.card h2{margin:0 0 12px;font-size:.45em;text-transform:uppercase;letter-spacing:.16em;color:var(--mut);font-weight:500}
+.line{margin:0 0 .6em}.en{color:var(--tx)}.fr{color:var(--ok)}.reply{border-left:3px solid var(--acc);padding-left:16px;margin:0 0 .7em}.reply small{display:block;color:var(--mut);font-size:.65em}
+.mut{color:var(--mut);font-size:.6em}input,textarea{font:inherit;font-size:.55em;background:#10131a;color:var(--tx);border:1px solid var(--line);border-radius:16px;padding:14px 16px;width:100%}
+textarea{min-height:150px;resize:vertical}.lib{display:grid;grid-template-columns:340px 1fr;gap:22px}.item{padding:14px 16px;border:1px solid var(--line);border-radius:18px;margin-bottom:10px;cursor:pointer;font-size:.55em;background:var(--card)}.item.on{border-color:var(--acc)}
+.notice{font-size:.48em;color:var(--mut);background:transparent;border:1px solid var(--line);border-radius:16px;padding:10px 16px}
 .hide{display:none}pre{white-space:pre-wrap;font:inherit;font-size:.7em}
+.cr{background:#fff;color:#1b2333;border-radius:18px;padding:34px 40px;font-size:.58em;line-height:1.55}
+.cr h1{font-size:1.5em;margin:0 0 14px;color:#1f2a44;font-weight:600}.cr h2{font-size:1em;text-transform:uppercase;letter-spacing:.1em;color:#7a6a3c;border-bottom:1px solid #e3e6ec;padding-bottom:4px;margin:26px 0 8px}.cr h3{font-size:1.05em;margin:14px 0 4px;color:#1f2a44}
+.cr .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:#f4f5f8;border-radius:12px;padding:14px 18px}.cr ul{margin:4px 0;padding-left:1.2em}.cr .nm{color:#8a90a0;font-style:italic;margin:4px 0}
+.cr table{width:100%;border-collapse:collapse;margin-top:6px}.cr th{background:#1f2a44;color:#fff;text-align:left;padding:8px 12px}.cr td{border-bottom:1px solid #e3e6ec;padding:8px 12px;vertical-align:top}.cr .foot{margin-top:26px;color:#8a90a0;font-size:.8em}
+@media print{body{background:#fff}header,nav,#list,.noprint,#q,#exp,.lib>div:first-child{display:none!important}.lib{display:block}.card{border:0;box-shadow:none;padding:0}.cr{padding:0}main{padding:0}}
 </style></head><body>
 <header><h1>Copilote de réunion</h1>
 <nav style="display:flex;gap:8px"><button id="tLive" class="on">En direct</button><button id="tLib">Comptes rendus</button><button id="tSet">Réglages</button></nav>
@@ -27,7 +32,7 @@ textarea{min-height:140px}.lib{display:grid;grid-template-columns:320px 1fr;gap:
  <div class="notice">Pensez à prévenir les participants que vous utilisez un outil de transcription. Aucun audio n'est enregistré ; le texte reste dans ce navigateur.</div><br>
  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
   <input id="title" placeholder="Nom de la réunion (ex. Webinaire EWOR)" style="max-width:520px">
-  <button class="p" id="start">Partager l'onglet + son</button><button id="demo">Essai démo</button><button id="stop" class="hide">Terminer + compte rendu</button></div>
+  <button class="p" id="start">Partager l'onglet + son</button><button id="demo">Essai démo</button><button id="pip">Mini-fenêtre</button><button id="stop" class="hide">Terminer + compte rendu</button></div>
  <div class="grid">
   <div class="card"><h2>Anglais (en direct)</h2><div id="en"><span class="mut">En attente de l'audio…</span></div></div>
   <div class="card"><h2>Explication en français</h2><div id="fr"></div></div>
@@ -72,15 +77,30 @@ $('#start').onclick=async()=>{try{stream=await navigator.mediaDevices.getDisplay
  // découpe par fenêtres de ~8 s
  let chunks=[];proc.onaudioprocess=async e=>{chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));if(chunks.length>=32){const len=chunks.reduce((s,x)=>s+x.length,0),a=new Float32Array(len);let o=0;for(const c of chunks){a.set(c,o);o+=c.length}chunks=[];const r=await asr(a);const t=(r.text||'').trim();if(t.length>3){add(t);explain(t)}}};
  }catch(e){alert('Capture impossible : '+e.message)}};
-$('#stop').onclick=async()=>{stream?.getTracks().forEach(t=>t.stop());const text=transcript.join(' ');const title=$('#title').value||'Réunion sans titre';
- let cr=await ai(`Rédige en français un compte rendu professionnel de cette réunion (transcription anglaise ci-dessous), avec les sections : Résumé exécutif, Décisions, Conclusions, Actions (qui/quoi/quand), Points à confirmer. N'invente rien : écris « non mentionné » si absent.\n\nNotes : ${$('#notes').value}\n\nTranscription : ${text}`);
- if(!cr)cr=`# Compte rendu (mode sans IA)\n\n## Notes\n${$('#notes').value||'—'}\n\n## Transcription brute\n${text}\n\n(Ajoutez une clé API dans Réglages pour un compte rendu structuré.)`;
- const a=load();a.unshift({id:Date.now(),title,date:new Date().toISOString(),text,notes:$('#notes').value,cr});save(a);$('#tLib').click()};
+const NM='non mentionné';
+$('#stop').onclick=async()=>{stream?.getTracks().forEach(t=>t.stop());const text=transcript.join(' ');const title=$('#title').value||'Réunion sans titre';const notes=$('#notes').value;
+ const raw=await ai(`Tu es secrétaire de séance expert. À partir de la transcription (anglais) et des notes ci-dessous, rédige en français un compte rendu professionnel. Réponds UNIQUEMENT par un JSON valide de la forme {"participants":[""],"ordre_du_jour":[""],"sujets":[{"titre":"","points":[""]}],"decisions":[""],"conclusions":[""],"actions":[{"action":"","responsable":"","delai":""}],"a_confirmer":[""],"resume":""}. Règles : phrases courtes, aucune invention ; si une information n'est pas dite, écris "non mentionné" (ou liste vide).\n\nNotes : ${notes}\n\nTranscription : ${text}`);
+ let cr=null;try{cr=JSON.parse((raw||'').replace(/^```json|```$/g,'').trim())}catch(e){}
+ if(!cr)cr={resume:text?NM+' (compte rendu automatique indisponible : ajoutez une clé IA dans Réglages)':NM,participants:[],ordre_du_jour:[],sujets:[{titre:'Notes de séance',points:notes?notes.split('\n').filter(Boolean):[NM]}],decisions:[],conclusions:[],actions:[],a_confirmer:[]};
+ const a=load();a.unshift({id:Date.now(),title,date:new Date().toISOString(),text,notes,cr});save(a);sel=a[0].id;$('#tLib').click()};
+const esc=x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const ul=l=>l&&l.length?'<ul>'+l.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':`<p class="nm">${NM}</p>`;
+function renderCR(m){const c=m.cr;if(typeof c==='string')return `<pre>${esc(c)}</pre>`;const d=new Date(m.date);
+ return `<article class="cr"><h1>Compte rendu de réunion</h1><div class="meta"><div><b>Réunion</b><br>${esc(m.title)}</div><div><b>Date</b><br>${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div><div><b>Heure</b><br>${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div></div>
+ <h2>Participants</h2>${ul(c.participants)}<h2>Ordre du jour</h2>${ul(c.ordre_du_jour)}<h2>Résumé exécutif</h2><p>${esc(c.resume||NM)}</p>
+ <h2>Sujets abordés</h2>${(c.sujets&&c.sujets.length)?c.sujets.map(x=>`<h3>${esc(x.titre)}</h3>${ul(x.points)}`).join(''):`<p class="nm">${NM}</p>`}
+ <h2>Décisions</h2>${ul(c.decisions)}<h2>Conclusions</h2>${ul(c.conclusions)}
+ <h2>Plan d'actions</h2>${(c.actions&&c.actions.length)?`<table><tr><th>Action</th><th>Responsable</th><th>Délai</th></tr>${c.actions.map(x=>`<tr><td>${esc(x.action)}</td><td>${esc(x.responsable||NM)}</td><td>${esc(x.delai||NM)}</td></tr>`).join('')}</table>`:`<p class="nm">${NM}</p>`}
+ <h2>Points à confirmer</h2>${ul(c.a_confirmer)}<p class="foot">Document généré à partir de la transcription et des notes ; à relire avant diffusion.</p></article>`}
 let sel=null;function renderList(){const q=$('#q').value.toLowerCase();const a=load().filter(m=>(m.title+m.cr+m.text).toLowerCase().includes(q));
  $('#list').innerHTML=a.map(m=>`<div class="item ${m.id==sel?'on':''}" data-id="${m.id}"><b>${m.title}</b><br><span class="mut">${new Date(m.date).toLocaleString('fr-FR')}</span></div>`).join('')||'<span class="mut">Aucun compte rendu.</span>';
- document.querySelectorAll('.item').forEach(e=>e.onclick=()=>{sel=+e.dataset.id;const m=load().find(x=>x.id==sel);$('#detail').innerHTML=`<h2>${m.title}</h2><pre>${m.cr.replace(/</g,'&lt;')}</pre><button id="dl">Télécharger (.md)</button> <button id="del">Supprimer</button>`;
-  $('#dl').onclick=()=>{const b=new Blob([`# ${m.title}\n${m.date}\n\n${m.cr}\n\n---\nTranscription:\n${m.text}`]);const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download=m.title+'.md';l.click()};
+ document.querySelectorAll('.item').forEach(e=>e.onclick=()=>{sel=+e.dataset.id;const m=load().find(x=>x.id==sel);$('#detail').innerHTML=renderCR(m)+`<div class="noprint" style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap"><button class="p" id="pdf">PDF / Imprimer</button><button id="dl">Word (.doc)</button><button id="del">Supprimer</button></div>`;$('#pdf').onclick=()=>print();
+  $('#dl').onclick=()=>{const css='body{font-family:Calibri,Arial;font-size:11pt}h1{color:#1f2a44}h2{color:#1f2a44;border-bottom:1px solid #999}table{border-collapse:collapse}td,th{border:1px solid #999;padding:4px 8px}';const b=new Blob(['<html><head><meta charset="utf-8"><style>'+css+'</style></head><body>'+renderCR(m)+'</body></html>'],{type:'application/msword'});const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download=m.title+'.doc';l.click()};
   $('#del').onclick=()=>{if(confirm('Supprimer ?')){save(load().filter(x=>x.id!=sel));sel=null;renderList();$('#detail').innerHTML=''}};renderList()})}
 $('#q').oninput=renderList;$('#exp').onclick=()=>{const b=new Blob([JSON.stringify(load(),null,1)]);const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download='comptes-rendus.json';l.click()};
 $('#saveKey').onclick=()=>{localStorage.key=$('#key').value;$('#key').value='';alert('Enregistrée dans ce navigateur.')};
+$('#pip').onclick=async()=>{if(!('documentPictureInPicture' in window)){alert("Mini-fenêtre non disponible : utilisez Chrome ou Edge récent.");return}
+ const w=await documentPictureInPicture.requestWindow({width:520,height:620});const st=w.document.createElement('style');st.textContent=document.querySelector('style').textContent+'body{padding:10px}header,.notice{display:none}.grid{grid-template-columns:1fr}.card{min-height:0}';w.document.head.append(st);w.document.documentElement.style.setProperty('--fs',(fs-8)+'px');
+ const box=document.createElement('div');box.className='grid';for(const id of ['en','fr','rep']){const c=document.getElementById(id).parentElement;box.append(c)}w.document.body.append(box);
+ w.addEventListener('pagehide',()=>{const g=document.querySelector('#live .grid');for(const id of ['en','fr','rep']){const c=w.document.getElementById(id)?.parentElement;if(c)g.prepend(c)}})};
 </script></body></html>
