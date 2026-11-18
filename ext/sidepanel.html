@@ -38,18 +38,42 @@ html[data-theme=light] .state{color:#111318}
 #say .n{font-size:14px;color:#9aa3b2;margin-top:4px}
 .pf button.on{background:#111318;color:#fff}.pf label{display:block;font-weight:600;margin:12px 0 4px}.pf textarea{min-height:80px;width:100%}
 .lvl{display:inline-block;width:100px;height:12px;border-radius:8px;background:#d5d9e0;overflow:hidden;vertical-align:middle;margin-left:8px}.lvl i{display:block;height:100%;width:0;background:#1f9d6b;transition:width .15s}.state.warn{border:2px solid #b8860b;border-radius:14px;padding:6px 10px}.state.err2{border:2px solid #c0392b;border-radius:14px;padding:6px 10px}
+body[data-mode=video] #sayB,body[data-mode=video] #pfT,body[data-mode=video] .repc{display:none!important}#pause.paused{background:#b8860b;color:#fff;border-color:#b8860b}
+html[data-theme=glass]{--bg:#e9ebef;--card:rgba(255,255,255,.72);--line:rgba(20,22,26,.12);--tx:#111318;--mut:#454c5a;--acc:#111318;--ok:#9be3c3}
+html[data-theme=glass] body{background:radial-gradient(1100px 600px at 15% -10%,#f6f7f9,#e4e7ec 60%,#dcdfe5)}
+html[data-theme=glass] h1{color:#111318;font-weight:600}
+html[data-theme=glass] .card,html[data-theme=glass] .item{backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(20,22,26,.08)}
+html[data-theme=glass] button{background:rgba(255,255,255,.85);color:#111318;border-color:rgba(20,22,26,.25)}
+html[data-theme=glass] button.p,html[data-theme=glass] nav button.on,html[data-theme=glass] .tabs button.on{background:#111318;color:#fff;border-color:#111318}
+html[data-theme=glass] input,html[data-theme=glass] textarea{background:rgba(255,255,255,.9);color:#111318;border-color:rgba(20,22,26,.25)}
+html[data-theme=glass] .notice{color:#454c5a;border-color:rgba(20,22,26,.18)}
+html[data-theme=glass] .key{background:#14161a;border-color:#14161a;color:#fff;--mut:#b4bbc8;--tx:#fff}
+html[data-theme=glass] .key h2{color:#b4bbc8}
+html[data-theme=glass] .key .reply{border-left-color:#fff}
+html[data-theme=glass] .state{color:#111318}
+html[data-theme=glass]{--ga:.5}
+html[data-theme=glass] body{background:radial-gradient(700px 500px at 10% 0%,#bcd3ff,transparent 70%),radial-gradient(700px 500px at 95% 15%,#ffd0e3,transparent 70%),radial-gradient(800px 600px at 50% 100%,#c4f1de,transparent 70%),#eef0f5;background-attachment:fixed}
+html[data-theme=glass] .key,html[data-theme=glass] .card{background:rgba(255,255,255,var(--ga));backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4);border:1px solid rgba(255,255,255,.85);box-shadow:0 10px 36px rgba(40,50,90,.14);color:#0b0d12;--tx:#0b0d12;--mut:#2f3644;--ok:#0a6b45}
+html[data-theme=glass] .key h2{color:#2f3644}html[data-theme=glass] .key .en,html[data-theme=glass] .key .line{color:#0b0d12}html[data-theme=glass] .key .fr{color:#0a6b45;font-weight:600}
+html[data-theme=glass] .key .reply{border-left-color:#0b0d12;color:#0b0d12}html[data-theme=glass] .key .reply small{color:#0a6b45}
+html[data-theme=glass] #say{background:rgba(255,255,255,calc(var(--ga) + .15));backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);color:#0b0d12;border:1px solid rgba(255,255,255,.9)}
+html[data-theme=glass] #say .k,html[data-theme=glass] #say .n{color:#3a4150}html[data-theme=glass] #say .s b{color:#8a4b00}html[data-theme=glass] #say .f{color:#0a6b45;font-weight:600}
+html[data-theme=glass] #say button{background:rgba(11,13,18,.09);color:#0b0d12}
+html[data-theme=glass] .stbar{background:rgba(255,255,255,.6);backdrop-filter:blur(16px)}
+.gl{display:flex;align-items:center;gap:10px;margin-top:12px}.gl input{width:100%;max-width:320px}
+
 </style></head><body><script>document.documentElement.dataset.theme="light"</script>
-<div id="say" class="hide"><div class="k">À dire</div><div class="s" id="sayEn">…</div><div class="f" id="sayFr"></div><div class="n" id="sayN"></div><div class="b"><button id="sayP" aria-label="Phrase précédente">◀</button><button id="sayN2" aria-label="Phrase suivante">▶</button><button id="sayX">Fermer</button></div></div><header><h1>Copilote de réunion</h1><button id="theme">Clair / Sombre</button><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></header>
+<div id="say" class="hide"><div class="k">À dire</div><div class="s" id="sayEn">…</div><div class="f" id="sayFr"></div><div class="n" id="sayN"></div><div class="b"><button id="sayP" aria-label="Phrase précédente">◀</button><button id="sayN2" aria-label="Phrase suivante">▶</button><button id="sayX">Fermer</button></div></div><header><h1>Copilote de réunion</h1><button id="theme">Thème</button><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></header>
 <div class="state"><span class="dot" id="dot"></span><span class="lvl" title="Niveau du son de l'onglet"><i id="lvlB"></i></span> <span id="st">Prêt. Cliquez sur l'icône du copilote (ou Alt+Maj+C) pendant la réunion.</span></div>
 <div class="tabs"><button class="on" data-t="live">Direct</button><button data-t="notes">Notes</button><button data-t="lib">Comptes rendus</button><button data-t="set">Réglages</button></div>
 <main>
-<section id="live"><div class="card key"><h2>Anglais (en direct)</h2><div id="en" class="mut">En attente de l'audio…</div></div>
+<section id="live"><div style="margin-bottom:10px"><button id="pause" class="p">⏸ Mettre en pause</button></div><div class="card key"><h2>Anglais (en direct)</h2><div id="en" class="mut">En attente de l'audio…</div></div>
 <div class="card key"><h2>Explication en français</h2><div id="fr"></div></div>
-<div class="card key"><h2>Que répondre ?</h2><div id="rep"></div></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap"><button id="sum">Résumer les 5 dernières minutes</button><button id="sayB">À dire</button><button id="pfT">Profil : Pro</button><button class="p" id="end">Terminer + compte rendu</button></div></section>
+<div class="card key repc"><h2>Que répondre ?</h2><div id="rep"></div></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button id="sum">Résumer les 5 dernières minutes</button><button id="modeT">Mode : Réunion</button><button id="sayB">À dire</button><button id="pfT">Profil : Pro</button><button class="p" id="end">Terminer + compte rendu</button></div></section>
 <section id="notes" class="hide"><div class="card"><h2>Nom de la réunion</h2><input id="title" placeholder="ex. Webinaire EWOR"><h2 style="margin-top:12px">Mes notes</h2><textarea id="nt" placeholder="Écrivez ici…"></textarea></div></section>
 <section id="lib" class="hide"><input id="q" placeholder="Rechercher…"><div id="list"></div><div id="detail"></div></section>
-<section id="set" class="hide"><div class="card"><h2>Clé IA gratuite (facultatif)</h2><p class="mut">Sans clé : transcription, notes et compte rendu minimal. Avec une clé Gemini : explications, réponses et compte rendu complet. La clé reste dans ce navigateur. Les phrases transcrites sont alors envoyées à Google.</p>
+<section id="set" class="hide"><div class="card"><h2>Effet verre</h2><p class="mut">Thème « Verre » (bouton Clair / Verre / Sombre). Transparence des cadres :</p><div class="gl"><input type="range" id="ga" min="25" max="90" value="50"><b id="gav">50 %</b></div></div><div class="card"><h2>Clé IA gratuite (facultatif)</h2><p class="mut">Sans clé : transcription, notes et compte rendu minimal. Avec une clé Gemini : explications, réponses et compte rendu complet. La clé reste dans ce navigateur. Les phrases transcrites sont alors envoyées à Google.</p>
 <input id="key" type="password" placeholder="Clé API"><input id="model" placeholder="Modèle (par défaut gemini-2.0-flash)"><button class="p" id="save">Enregistrer</button> <span class="mut" id="saved"></span></div><div class="card pf" id="pf"><h2>Mon profil</h2><div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap"><button id="pfA" class="on">Pro (clients, incubateurs, agences)</button><button id="pfB">Perso (entretiens d'embauche)</button></div><p class="mut">Facultatif. Écrivez vous-même, simplement. Ce texte reste dans ce navigateur, mais il est ENVOYÉ à l'IA externe (Gemini, avec votre clé) à chaque demande de réponse : n'y mettez rien de secret.</p>
 <label>Mon parcours</label><textarea id="pf1" placeholder="À remplir par vous"></textarea><label>Harmoniq AI : ce que c'est</label><textarea id="pf2" placeholder="À remplir par vous"></textarea><label>Mon offre</label><textarea id="pf3" placeholder="À remplir par vous"></textarea><label>Ce que je cherche</label><textarea id="pf4" placeholder="À remplir par vous"></textarea><br><button class="p" id="pfSave">Enregistrer le profil</button> <span class="mut" id="pfOk"></span><p class="mut" id="pfAct"></p></div>
 <div class="card"><h2>Vie privée</h2><p class="mut">Aucun audio n'est enregistré ni conservé. Le texte reste dans ce navigateur. Prévenez les participants que vous utilisez un outil de transcription.</p></div></section>
