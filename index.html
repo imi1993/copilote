@@ -2,7 +2,7 @@
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Copilote de réunion</title>
 <style>
-:root{--fs:30px;--bg:#12151c;--card:#1b2029;--line:#2b3240;--tx:#eef1f5;--mut:#98a3b5;--acc:#c9b27c;--ok:#8fd3b6;--r:22px}
+:root{--fs:32px;--bg:#12151c;--card:#1b2029;--line:#2b3240;--tx:#eef1f5;--mut:#98a3b5;--acc:#c9b27c;--ok:#8fd3b6;--r:22px}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#1a2030,var(--bg));color:var(--tx);font:var(--fs)/1.5 "Inter","Segoe UI",system-ui,sans-serif;letter-spacing:.005em}
 header{display:flex;gap:14px;align-items:center;padding:18px 32px;flex-wrap:wrap}
 h1{font-size:.62em;margin:0;font-weight:500;letter-spacing:.04em;color:var(--acc);margin-right:auto}
@@ -23,10 +23,24 @@ textarea{min-height:150px;resize:vertical}.lib{display:grid;grid-template-column
 .cr .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;background:#f4f5f8;border-radius:12px;padding:14px 18px}.cr ul{margin:4px 0;padding-left:1.2em}.cr .nm{color:#8a90a0;font-style:italic;margin:4px 0}
 .cr table{width:100%;border-collapse:collapse;margin-top:6px}.cr th{background:#1f2a44;color:#fff;text-align:left;padding:8px 12px}.cr td{border-bottom:1px solid #e3e6ec;padding:8px 12px;vertical-align:top}.cr .foot{margin-top:26px;color:#8a90a0;font-size:.8em}
 @media print{body{background:#fff}header,nav,#list,.noprint,#q,#exp,.lib>div:first-child{display:none!important}.lib{display:block}.card{border:0;box-shadow:none;padding:0}.cr{padding:0}main{padding:0}}
-</style></head><body>
+
+html[data-theme=light]{--bg:#e9ebef;--card:rgba(255,255,255,.72);--line:rgba(20,22,26,.12);--tx:#111318;--mut:#454c5a;--acc:#111318;--ok:#9be3c3}
+html[data-theme=light] body{background:radial-gradient(1100px 600px at 15% -10%,#f6f7f9,#e4e7ec 60%,#dcdfe5)}
+html[data-theme=light] h1{color:#111318;font-weight:600}
+html[data-theme=light] .card,html[data-theme=light] .item{backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(20,22,26,.08)}
+html[data-theme=light] button{background:rgba(255,255,255,.85);color:#111318;border-color:rgba(20,22,26,.25)}
+html[data-theme=light] button.p,html[data-theme=light] nav button.on,html[data-theme=light] .tabs button.on{background:#111318;color:#fff;border-color:#111318}
+html[data-theme=light] input,html[data-theme=light] textarea{background:rgba(255,255,255,.9);color:#111318;border-color:rgba(20,22,26,.25)}
+html[data-theme=light] .notice{color:#454c5a;border-color:rgba(20,22,26,.18)}
+html[data-theme=light] .key{background:#14161a;border-color:#14161a;color:#fff;--mut:#b4bbc8;--tx:#fff}
+html[data-theme=light] .key h2{color:#b4bbc8}
+html[data-theme=light] .key .reply{border-left-color:#fff}
+html[data-theme=light] .state{color:#111318}
+.tt{font-size:.5em}
+</style></head><body><script>document.documentElement.dataset.theme=localStorage.theme||"light"</script>
 <header><h1>Copilote de réunion</h1>
 <nav style="display:flex;gap:8px"><button id="tLive" class="on">En direct</button><button id="tLib">Comptes rendus</button><button id="tSet">Réglages</button></nav>
-<span style="display:flex;gap:6px"><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></span></header>
+<span style="display:flex;gap:6px"><button id="theme" aria-label="Thème clair ou sombre">Clair / Sombre</button><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></span></header>
 <main>
 <section id="live">
  <div class="notice">Pensez à prévenir les participants que vous utilisez un outil de transcription. Aucun audio n'est enregistré ; le texte reste dans ce navigateur.</div><br>
@@ -34,9 +48,9 @@ textarea{min-height:150px;resize:vertical}.lib{display:grid;grid-template-column
   <input id="title" placeholder="Nom de la réunion (ex. Webinaire EWOR)" style="max-width:520px">
   <button class="p" id="start">Partager l'onglet + son</button><button id="demo">Essai démo</button><button id="pip">Mini-fenêtre</button><button id="stop" class="hide">Terminer + compte rendu</button></div>
  <div class="grid">
-  <div class="card"><h2>Anglais (en direct)</h2><div id="en"><span class="mut">En attente de l'audio…</span></div></div>
-  <div class="card"><h2>Explication en français</h2><div id="fr"></div></div>
-  <div class="card"><h2>Que répondre ?</h2><div id="rep"></div></div>
+  <div class="card key"><h2>Anglais (en direct)</h2><div id="en"><span class="mut">En attente de l'audio…</span></div></div>
+  <div class="card key"><h2>Explication en français</h2><div id="fr"></div></div>
+  <div class="card key"><h2>Que répondre ?</h2><div id="rep"></div></div>
   <div class="card"><h2>Mes notes</h2><textarea id="notes" placeholder="Écrivez ici…"></textarea></div>
  </div></section>
 <section id="lib" class="hide"><div style="display:flex;gap:10px;margin-bottom:14px"><input id="q" placeholder="Rechercher (réunion, date, mot)…"><button id="exp">Exporter tout</button></div>
@@ -47,7 +61,7 @@ textarea{min-height:150px;resize:vertical}.lib{display:grid;grid-template-column
 </main>
 <script type="module">
 const $=s=>document.querySelector(s);let fs=32;const setFs=v=>{fs=Math.max(20,Math.min(64,v));document.documentElement.style.setProperty('--fs',fs+'px');localStorage.fs=fs};setFs(+localStorage.fs||32);
-$('#fm').onclick=()=>setFs(fs-4);$('#fp').onclick=()=>setFs(fs+4);
+$('#theme').onclick=()=>{const d=document.documentElement;d.dataset.theme=d.dataset.theme==='light'?'dark':'light';localStorage.theme=d.dataset.theme};$('#fm').onclick=()=>setFs(fs-4);$('#fp').onclick=()=>setFs(fs+4);
 const tabs={tLive:'live',tLib:'lib',tSet:'set'};for(const t in tabs)$('#'+t).onclick=()=>{for(const k in tabs){$('#'+tabs[k]).classList.toggle('hide',k!==t);$('#'+k).classList.toggle('on',k===t)}if(t=='tLib')renderList()};
 // storage (navigateur uniquement)
 const load=()=>JSON.parse(localStorage.meetings||'[]'),save=a=>localStorage.meetings=JSON.stringify(a);
