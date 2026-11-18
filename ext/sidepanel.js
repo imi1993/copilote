@@ -21,6 +21,18 @@ Réponds en 3 parties séparées par "||" :
 2) si une réponse de l'utilisatrice est attendue : UNE seule phrase courte (10 mots max) en anglais très facile à lire à voix haute, avec 2 ou 3 mots clés entourés de ** ; sinon "-" ;
 3) le sens de cette phrase en français, une ligne ; sinon "-".
 Si on pose une question sur l'utilisatrice, utilise UNIQUEMENT le profil. Si l'information manque dans le profil, n'invente rien : partie 2 = "I **prefer** to **confirm** this and come back to you." et partie 3 = "Je préfère confirmer et revenir vers vous."`}
+
+// ---- anti-répétition : une phrase par ligne, rien de déjà affiché ----
+const normS=s=>s.toLowerCase().replace(/[^a-z0-9' ]/g,' ').replace(/\s+/g,' ').trim();let seenS=[];
+const EN_W=new Set("the and to of is you i that it in we for on a be have with this are was not but they at what so can will do if my your me he she there just about all one would an from or as by how when which their out up know like get go been has had were them its our more no yes okay thank thanks please hello hi well now here want need see think going said".split(' '));
+const FR_W=new Set("le la les des est que pour une un du de et pas dans qui sur avec ce cette sont nous vous je il elle ils au aux mais ou donc ne plus par comme bien oui bonjour merci très faire fait être avoir c'est j'ai".split(' '));
+function isEnglish(t){const w=t.toLowerCase().replace(/[.,!?;:"]/g,' ').split(/\s+/).filter(Boolean);if(w.length<4)return !/[éèêàçùâîôû]/i.test(t);let en=0,fr=0;for(const x of w){if(EN_W.has(x))en++;if(FR_W.has(x))fr++}
+ if(/[éèêàçùâîôû]/i.test(t)&&fr>=en)return false;return en/w.length>=0.18&&en>fr}
+function freshParts(t){if(!isEnglish(t))return [];let x=t.replace(/\s+/g,' ').trim(),p;do{p=x;x=x.replace(/(\b[^.!?]{10,}?[.!?]?)\s+\1/gi,'$1')}while(x!==p);
+ for(const y of [...seenS].sort((a,b)=>b.length-a.length)){const r=new RegExp(y.split(' ').map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join("[^a-z0-9']+"),'i');x=x.replace(r,' ')}x=x.replace(/\s+/g,' ').trim();
+ const out=[];for(let s of (x.match(/[^.!?]+[.!?]*/g)||[x])){s=s.trim();const n=normS(s);if(n.length<4)continue;
+  if(seenS.some(y=>y===n||y.includes(n)))continue;seenS.push(n);if(seenS.length>60)seenS.shift();out.push(s)}return out}
+let noteFr=false;
 // états
 const STATES={starting:['Démarrage…',''],loading:['Préparation du moteur de transcription…',''],listening:['En écoute','on'],stopped:['Écoute arrêtée',''],error:['Problème','err']};
 function setState(m){lastM=m;curState=m.state;if(m.state==='loading'&&!loadingSince)loadingSince=Date.now();if(m.state!=='loading')loadingSince=0;const [t,c]=STATES[m.state]||['',''];let txt=t;if(m.platform)txt+=' ('+m.platform+')';if(m.detail)txt+=' : '+m.detail;if(m.error)txt+=' : '+m.error+'. Recliquez sur l\'icône du copilote pour réessayer.';$('#st').textContent=txt;$('#dot').className='dot '+c}
@@ -36,8 +48,9 @@ chrome.storage.session.get('st').then(({st})=>{if(st&&st.state){setState(st);cur
 // IA (Gemini, clé facultative)
 async function ai(prompt){const {key,model}=await chrome.storage.local.get(['key','model']);if(!key)return null;
  try{const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model||'gemini-2.0-flash'}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});const j=await r.json();return j.candidates?.[0]?.content?.parts?.[0]?.text||null}catch(e){return null}}
-async function onText(t){transcript.push({t,at:Date.now()});if($('#en').classList.contains('mut'))$('#en').innerHTML='',$('#en').classList.remove('mut');
- $('#en').insertAdjacentHTML('beforeend',`<p class="line en">${esc(t)}</p>`);
+async function onText(raw){const parts=freshParts(raw);if(!parts.length)return;const t=parts.join(' ');transcript.push({t,at:Date.now()});if($('#en').classList.contains('mut'))$('#en').innerHTML='',$('#en').classList.remove('mut');
+ for(const p of parts)$('#en').insertAdjacentHTML('beforeend',`<p class="line en">${esc(p)}</p>`);
+ {const {key}=await chrome.storage.local.get('key');if(!key&&!noteFr){noteFr=true;$('#fr').innerHTML='<p class="line mut">Explication en français : ajoutez une clé IA gratuite dans Réglages pour l\'activer. Le texte anglais s\'affiche déjà.</p>'}}
  const {profiles={},pfActive='pro'}=await chrome.storage.local.get(['profiles','pfActive']);const a=await ai(coachPrompt(t,profileText(profiles[pfActive]||{})));
  if(!a)return;const [x,y,z]=a.split('||').map(q=>q.trim());$('#fr').insertAdjacentHTML('beforeend',`<p class="line fr">${esc(x)}</p>`);if(y&&y!=='-'){$('#rep').innerHTML=`<div class="reply">${bold(y)}<small>${esc(z&&z!=='-'?z:'')}</small></div>`;pushSay(y,z&&z!=='-'?z:'')}}
 chrome.runtime.onMessage.addListener(m=>{if(m.to!=='panel')return;if(m.type==='level'){$('#lvlB').style.width=Math.min(100,Math.round(m.v*900))+'%';quietMs=m.quiet||0;paint();return}if(m.type==='busy'){busyNow=m.on;paint();return}if(m.type==='state')setState(m);if(m.type==='text')onText(m.text)});
@@ -56,7 +69,7 @@ $('#end').onclick=async()=>{chrome.runtime.sendMessage({to:'bg',type:'stop'});co
  let cr=null;try{cr=JSON.parse((raw||'').replace(/^```json|```$/g,'').trim())}catch(e){}
  if(!cr)cr={resume:text?NM+' (compte rendu automatique indisponible : ajoutez une clé IA dans Réglages)':NM,participants:[],ordre_du_jour:[],sujets:[{titre:'Notes de séance',points:notes?notes.split('\n').filter(Boolean):[NM]}],decisions:[],conclusions:[],actions:[],a_confirmer:[]};
  const {meetings=[]}=await chrome.storage.local.get('meetings');const m={id:Date.now(),title,date:new Date().toISOString(),text,notes,cr};meetings.unshift(m);await chrome.storage.local.set({meetings});sel=m.id;transcript=[];
- $('#en').className='mut';$('#en').textContent="En attente de l'audio…";$('#fr').innerHTML='';$('#rep').innerHTML='';document.querySelector('[data-t=lib]').click()};
+ seenS=[];noteFr=false;$('#en').className='mut';$('#en').textContent="En attente de l'audio…";$('#fr').innerHTML='';$('#rep').innerHTML='';document.querySelector('[data-t=lib]').click()};
 async function renderList(){const {meetings=[]}=await chrome.storage.local.get('meetings');const q=$('#q').value.toLowerCase();const a=meetings.filter(m=>(m.title+JSON.stringify(m.cr)+m.text).toLowerCase().includes(q));
  $('#list').innerHTML=a.map(m=>`<div class="item" data-id="${m.id}"><b>${esc(m.title)}</b><br><span class="mut">${new Date(m.date).toLocaleString('fr-FR')}</span></div>`).join('')||'<p class="mut">Aucun compte rendu.</p>';
  const show=id=>{const m=meetings.find(x=>x.id==id);if(!m)return;$('#detail').innerHTML=renderCR(m)+'<div class="noprint" style="margin:12px 0;display:flex;gap:8px;flex-wrap:wrap"><button class="p" id="pdf">PDF / Imprimer</button><button id="doc">Word (.doc)</button><button id="del">Supprimer</button></div>';
