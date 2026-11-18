@@ -36,6 +36,29 @@ html[data-theme=light] .key{background:#14161a;border-color:#14161a;color:#fff;-
 html[data-theme=light] .key h2{color:#b4bbc8}
 html[data-theme=light] .key .reply{border-left-color:#fff}
 html[data-theme=light] .state{color:#111318}
+html[data-theme=glass]{--bg:#e9ebef;--card:rgba(255,255,255,.72);--line:rgba(20,22,26,.12);--tx:#111318;--mut:#454c5a;--acc:#111318;--ok:#9be3c3}
+html[data-theme=glass] body{background:radial-gradient(1100px 600px at 15% -10%,#f6f7f9,#e4e7ec 60%,#dcdfe5)}
+html[data-theme=glass] h1{color:#111318;font-weight:600}
+html[data-theme=glass] .card,html[data-theme=glass] .item{backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(20,22,26,.08)}
+html[data-theme=glass] button{background:rgba(255,255,255,.85);color:#111318;border-color:rgba(20,22,26,.25)}
+html[data-theme=glass] button.p,html[data-theme=glass] nav button.on,html[data-theme=glass] .tabs button.on{background:#111318;color:#fff;border-color:#111318}
+html[data-theme=glass] input,html[data-theme=glass] textarea{background:rgba(255,255,255,.9);color:#111318;border-color:rgba(20,22,26,.25)}
+html[data-theme=glass] .notice{color:#454c5a;border-color:rgba(20,22,26,.18)}
+html[data-theme=glass] .key{background:#14161a;border-color:#14161a;color:#fff;--mut:#b4bbc8;--tx:#fff}
+html[data-theme=glass] .key h2{color:#b4bbc8}
+html[data-theme=glass] .key .reply{border-left-color:#fff}
+html[data-theme=glass] .state{color:#111318}
+html[data-theme=glass]{--ga:.5}
+html[data-theme=glass] body{background:radial-gradient(700px 500px at 10% 0%,#bcd3ff,transparent 70%),radial-gradient(700px 500px at 95% 15%,#ffd0e3,transparent 70%),radial-gradient(800px 600px at 50% 100%,#c4f1de,transparent 70%),#eef0f5;background-attachment:fixed}
+html[data-theme=glass] .key,html[data-theme=glass] .card{background:rgba(255,255,255,var(--ga));backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4);border:1px solid rgba(255,255,255,.85);box-shadow:0 10px 36px rgba(40,50,90,.14);color:#0b0d12;--tx:#0b0d12;--mut:#2f3644;--ok:#0a6b45}
+html[data-theme=glass] .key h2{color:#2f3644}html[data-theme=glass] .key .en,html[data-theme=glass] .key .line{color:#0b0d12}html[data-theme=glass] .key .fr{color:#0a6b45;font-weight:600}
+html[data-theme=glass] .key .reply{border-left-color:#0b0d12;color:#0b0d12}html[data-theme=glass] .key .reply small{color:#0a6b45}
+html[data-theme=glass] #say{background:rgba(255,255,255,calc(var(--ga) + .15));backdrop-filter:blur(24px) saturate(1.4);-webkit-backdrop-filter:blur(24px) saturate(1.4);color:#0b0d12;border:1px solid rgba(255,255,255,.9)}
+html[data-theme=glass] #say .k,html[data-theme=glass] #say .n{color:#3a4150}html[data-theme=glass] #say .s b{color:#8a4b00}html[data-theme=glass] #say .f{color:#0a6b45;font-weight:600}
+html[data-theme=glass] #say button{background:rgba(11,13,18,.09);color:#0b0d12}
+html[data-theme=glass] .stbar{background:rgba(255,255,255,.6);backdrop-filter:blur(16px)}
+.gl{display:flex;align-items:center;gap:10px;margin-top:12px}.gl input{width:100%;max-width:320px}
+
 .tt{font-size:.5em}
 
 #say{position:fixed;top:0;left:0;right:0;z-index:50;background:#111318;color:#fff;padding:16px 24px 14px;border-radius:0 0 26px 26px;box-shadow:0 12px 40px #0007}
@@ -49,36 +72,44 @@ html[data-theme=light] .state{color:#111318}
 .stbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#fffd;border:2px solid #111318;border-radius:18px;padding:12px 18px;margin:0 0 14px;font-size:calc(var(--fs)*.6);font-weight:600;color:#111318}
 .stbar[data-c=ok]{border-color:#1f9d6b}.stbar[data-c=e]{border-color:#c0392b;background:#fdecea}.stbar[data-c=w]{border-color:#b8860b}
 .lvl{display:inline-block;width:160px;height:14px;border-radius:9px;background:#d5d9e0;overflow:hidden}.lvl i{display:block;height:100%;width:0;background:#1f9d6b;transition:width .15s}
-</style></head><body><script>document.documentElement.dataset.theme=localStorage.theme||"light"</script>
+body[data-mode=video] #sayB,body[data-mode=video] #pfT,body[data-mode=video] .repc{display:none!important}#pause.paused{background:#b8860b;color:#fff;border-color:#b8860b}
+</style></head><body><script>document.documentElement.dataset.theme=localStorage.theme||"glass"</script>
 <div id="say" class="hide"><div class="k">À dire</div><div class="s" id="sayEn">…</div><div class="f" id="sayFr"></div><div class="n" id="sayN"></div><div class="b"><button id="sayP" aria-label="Phrase précédente">◀</button><button id="sayN2" aria-label="Phrase suivante">▶</button><button id="sayX">Fermer</button></div></div><header><h1>Copilote de réunion</h1>
 <nav style="display:flex;gap:8px"><button id="tLive" class="on">En direct</button><button id="tLib">Comptes rendus</button><button id="tSet">Réglages</button></nav>
-<span style="display:flex;gap:6px"><button id="theme" aria-label="Thème clair ou sombre">Clair / Sombre</button><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></span></header>
+<span style="display:flex;gap:6px"><button id="theme" aria-label="Thème clair ou sombre">Thème : Clair / Verre / Sombre</button><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></span></header>
 <main>
 <section id="live">
  <div class="notice">Pensez à prévenir les participants que vous utilisez un outil de transcription. Aucun audio n'est enregistré ; le texte reste dans ce navigateur.</div><br>
  <div class="stbar" id="stbar"><span id="sttT">Prêt. Cliquez sur « Partager l'onglet + son », ou sur « Essai démo ».</span><span class="lvl" title="Niveau du son"><i id="lvlB"></i></span></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
   <input id="title" placeholder="Nom de la réunion (ex. Webinaire EWOR)" style="max-width:520px">
-  <button class="p" id="start">Partager l'onglet + son</button><button id="mic">Test avec mon micro</button><button id="demo">Essai démo</button><button id="pip">Mini-fenêtre</button><button id="sayB">À dire</button><button id="pfT">Profil : Pro</button><button id="stop" class="hide">Terminer + compte rendu</button></div>
+  <button class="p" id="start">Partager l'onglet + son</button><button id="mic">Test avec mon micro</button><button id="demo">Essai démo</button><button id="pip">Mini-fenêtre</button><button id="modeT">Mode : Réunion</button><button id="pause" class="hide p">⏸ Mettre en pause</button><button id="sayB">À dire</button><button id="pfT">Profil : Pro</button><button id="stop" class="hide">Terminer + compte rendu / résumé</button></div>
  <div class="grid">
   <div class="card key"><h2>Anglais (en direct)</h2><div id="en"><span class="mut">En attente de l'audio…</span></div></div>
   <div class="card key"><h2>Explication en français</h2><div id="fr"></div></div>
-  <div class="card key"><h2>Que répondre ?</h2><div id="rep"></div></div>
+  <div class="card key repc"><h2>Que répondre ?</h2><div id="rep"></div></div>
   <div class="card"><h2>Mes notes</h2><textarea id="notes" placeholder="Écrivez ici…"></textarea></div>
  </div></section>
 <section id="lib" class="hide"><div style="display:flex;gap:10px;margin-bottom:14px"><input id="q" placeholder="Rechercher (réunion, date, mot)…"><button id="exp">Exporter tout</button></div>
  <div class="lib"><div id="list"></div><div class="card" id="detail"><span class="mut">Choisissez un compte rendu.</span></div></div></section>
-<section id="set" class="hide"><div class="card"><h2>Réglages</h2>
+<section id="set" class="hide"><div class="card"><h2>Effet verre</h2><p class="mut">Thème « Verre » (bouton Clair / Verre / Sombre). Transparence des cadres :</p><div class="gl"><input type="range" id="ga" min="25" max="90" value="50"><b id="gav">50 %</b></div></div><div class="card"><h2>Réglages</h2>
  <p class="mut">Clé API IA gratuite (optionnelle). Elle reste uniquement dans ce navigateur. Sans clé : transcription + notes, sans explications automatiques.</p>
  <input id="key" type="password" placeholder="Clé API (jamais par WhatsApp)"><br><br><button class="p" id="saveKey">Enregistrer</button></div><div class="card pf" id="pf"><h2>Mon profil</h2><div style="display:flex;gap:8px;margin-bottom:8px"><button id="pfA" class="on">Pro (clients, incubateurs, agences)</button><button id="pfB">Perso (entretiens d'embauche)</button></div><p class="mut">Facultatif. Écrivez vous-même, simplement. Ce texte reste dans ce navigateur, mais il est ENVOYÉ à l'IA externe (Gemini, avec votre clé) à chaque demande de réponse : n'y mettez rien de secret.</p>
 <label>Mon parcours</label><textarea id="pf1" placeholder="À remplir par vous"></textarea><label>Harmoniq AI : ce que c'est</label><textarea id="pf2" placeholder="À remplir par vous"></textarea><label>Mon offre</label><textarea id="pf3" placeholder="À remplir par vous"></textarea><label>Ce que je cherche</label><textarea id="pf4" placeholder="À remplir par vous"></textarea><br><button class="p" id="pfSave">Enregistrer le profil</button> <span class="mut" id="pfOk"></span><p class="mut" id="pfAct"></p></div></section>
 </main>
 <script type="module">
 const $=s=>document.querySelector(s);let fs=32;const setFs=v=>{fs=Math.max(20,Math.min(64,v));document.documentElement.style.setProperty('--fs',fs+'px');localStorage.fs=fs};setFs(+localStorage.fs||32);
-$('#theme').onclick=()=>{const d=document.documentElement;d.dataset.theme=d.dataset.theme==='light'?'dark':'light';localStorage.theme=d.dataset.theme};$('#fm').onclick=()=>setFs(fs-4);$('#fp').onclick=()=>setFs(fs+4);
+const setGa=v=>{document.documentElement.style.setProperty('--ga',v/100);$('#ga').value=v;$('#gav').textContent=v+' %'};setGa(+localStorage.ga||50);$('#ga').oninput=e=>{setGa(+e.target.value);localStorage.ga=e.target.value};
+$('#theme').onclick=()=>{const d=document.documentElement;const T=['light','glass','dark'];d.dataset.theme=T[(T.indexOf(d.dataset.theme)+1)%3];localStorage.theme=d.dataset.theme};$('#fm').onclick=()=>setFs(fs-4);$('#fp').onclick=()=>setFs(fs+4);
 const tabs={tLive:'live',tLib:'lib',tSet:'set'};for(const t in tabs)$('#'+t).onclick=()=>{for(const k in tabs){$('#'+tabs[k]).classList.toggle('hide',k!==t);$('#'+k).classList.toggle('on',k===t)}if(t=='tLib')renderList()};
 // storage (navigateur uniquement)
 const load=()=>JSON.parse(localStorage.meetings||'[]'),save=a=>localStorage.meetings=JSON.stringify(a);
 const esc=x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');let transcript=[],ctx=[];
+let MODE=localStorage.mode||'meeting';const MODEL_L=()=>MODE==='video'?'Mode : Vidéo / formation':'Mode : Réunion';
+const MEET_INTRO="${intro()}";
+const VID_INTRO="Tu es un assistant pédagogique. À partir de la transcription (anglais) d'une vidéo ou formation et des notes, rédige en français un résumé de formation. Utilise le même JSON : participants = intervenants cités ; ordre_du_jour = plan de la formation ; sujets = notions clés expliquées simplement ; decisions = liste vide ; conclusions = à retenir ; actions = à réviser ou à faire ; a_confirmer = points à vérifier ; resume = résumé en 5 lignes.";
+const intro=()=>MODE==='video'?VID_INTRO:MEET_INTRO;
+const VID_COACH=(t)=>`Tu es un assistant qui explique en direct une vidéo ou une formation en anglais à une francophone qui comprend mal l'anglais. Phrase entendue (anglais) : "${t}". Réponds par UNE explication en français, simple et fidèle, en 1 ou 2 phrases ; explique brièvement les termes techniques. N'invente rien.`;
+
 // ---- anti-répétition : une phrase par ligne, rien de déjà affiché ----
 const normS=s=>s.toLowerCase().replace(/[^a-z0-9' ]/g,' ').replace(/\s+/g,' ').trim();let seenS=[];
 const EN_W=new Set("the and to of is you i that it in we for on a be have with this are was not but they at what so can will do if my your me he she there just about all one would an from or as by how when which their out up know like get go been has had were them its our more no yes okay thank thanks please hello hi well now here want need see think going said".split(' '));
@@ -116,14 +147,14 @@ const add=(en,fr,rep)=>{transcript.push(en);if($('#en .mut'))$('#en').innerHTML=
 async function ai(prompt){const k=localStorage.key;if(!k)return null;
  try{const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+k,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
  const j=await r.json();return j.candidates?.[0]?.content?.parts?.[0]?.text||null}catch(e){return null}}
-async function explain(text){const p=(JSON.parse(localStorage.profiles||'{}')[localStorage.pfActive||'pro']||{});const t=await ai(coachPrompt(text,profileText(p)));
+async function explain(text){const p=(JSON.parse(localStorage.profiles||'{}')[localStorage.pfActive||'pro']||{});const t=await ai(MODE==='video'?VID_COACH(text):coachPrompt(text,profileText(p)));
  if(!t)return;const [a,b,c]=t.split('||').map(x=>x.trim());$('#fr').insertAdjacentHTML('beforeend',`<p class="line fr">${esc(a)}</p>`);if(b&&b!=='-'){$('#rep').innerHTML=`<div class="reply">${bold(b)}<small>${esc(c&&c!=='-'?c:'')}</small></div>`;pushSay(b,c&&c!=='-'?c:'')}}
 $('#demo').onclick=async()=>{start();stt("Mode démo : texte d'exemple, sans son.",'w');const L=[["So today we'll review the Q4 pipeline and decide on the pricing change.","Aujourd'hui on passe en revue le pipeline du T4 et on décide du changement de prix.",null],["Sarah, can you confirm the numbers by Friday?","On demande à Sarah de confirmer les chiffres d'ici vendredi.",["Yes, I can send them by Friday.","Oui, je peux les envoyer d'ici vendredi."]],["Any questions before we move on?","Le présentateur demande s'il y a des questions.",["No questions, thank you.","Pas de questions, merci."]]];
  for(const l of L){await new Promise(r=>setTimeout(r,700));add(...l)}};
 let stream;async function start(){$('#stop').classList.remove('hide');transcript=[];$('#fr').innerHTML='';$('#rep').innerHTML='';$('#en').innerHTML=''}
 const stt=(t,c)=>{$('#sttT').textContent=t;$('#stbar').dataset.c=c||''};const lvl=v=>{$('#lvlB').style.width=Math.min(100,Math.round(v*900))+'%'};
 const MODEL='onnx-community/whisper-base.en',CDN='https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
-let noteFr=false;async function go(mode){seenS=[];noteFr=false;try{
+let noteFr=false;let lastSnd=Date.now(),PAUSED=false;async function go(mode){seenS=[];noteFr=false;try{
  if(mode==='mic'){stt('Autorisez le micro dans la fenêtre du navigateur (test seule, aucun enregistrement).','w');stream=await navigator.mediaDevices.getUserMedia({audio:true})}
  else{stt("Choisissez l'ONGLET de la réunion et cochez « Partager l'audio de l'onglet ».",'w');stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true})}
  if(!stream.getAudioTracks().length){stream.getTracks().forEach(t=>t.stop());stt("Aucun son partagé. Recommencez : choisissez un ONGLET (pas une fenêtre) et cochez « Partager l'audio de l'onglet ».",'e');return}
@@ -135,29 +166,30 @@ let noteFr=false;async function go(mode){seenS=[];noteFr=false;try{
  $('#en').innerHTML='<span class="mut">Écoute en cours… le texte apparaît toutes les 5 secondes environ.</span>';first=true;
  stt('Écoute en cours. Lancez le son de la réunion.','ok');
  const ac=new AudioContext({sampleRate:16000}),src=ac.createMediaStreamSource(new MediaStream(stream.getAudioTracks())),proc=ac.createScriptProcessor(4096,1,1);
- let chunks=[],busy=false,lastSound=Date.now();
+ let chunks=[],busy=false;lastSnd=Date.now();PAUSED=false;$('#pause').classList.remove('hide');
  stream.getVideoTracks()[0]?.addEventListener('ended',()=>stt('Partage arrêté. Cliquez de nouveau sur « Partager l\'onglet + son ».','w'));
- proc.onaudioprocess=async e=>{const d=new Float32Array(e.inputBuffer.getChannelData(0));let m=0;for(const x of d)m=Math.max(m,Math.abs(x));lvl(m);if(m>0.01)lastSound=Date.now();chunks.push(d);
-  if(Date.now()-lastSound>15000&&!busy)stt("Aucun son détecté depuis 15 secondes. Vérifiez que la vidéo joue avec du son et que « Partager l'audio de l'onglet » était coché.",'e');
+ proc.onaudioprocess=async e=>{if(PAUSED){chunks=[];lvl(0);return}const d=new Float32Array(e.inputBuffer.getChannelData(0));let m=0;for(const x of d)m=Math.max(m,Math.abs(x));lvl(m);if(m>0.01)lastSnd=Date.now();chunks.push(d);
+  if(Date.now()-lastSnd>15000&&!busy)stt("Aucun son détecté depuis 15 secondes. Vérifiez que la vidéo joue avec du son et que « Partager l'audio de l'onglet » était coché.",'e');
   if(chunks.length>=20&&!busy){busy=true;const len=chunks.reduce((s,x)=>s+x.length,0),a=new Float32Array(len);let o=0;for(const c of chunks){a.set(c,o);o+=c.length}chunks=[];
-   try{if(Date.now()-lastSound<15000){stt('Transcription en cours…','ok')}
+   try{if(Date.now()-lastSnd<15000){stt('Transcription en cours…','ok')}
     const r=await asr(a);const t=(r.text||'').replace(/\[[^\]]*\]|\([^)]*\)/g,'').trim();const parts=freshParts(t);if(parts.length){if(first){$('#en').innerHTML='';first=false}const nt=parts.join(' ');add(nt);explain(nt);if(!localStorage.key&&!noteFr){noteFr=true;$('#fr').innerHTML='<p class="line mut">Explication en français : ajoutez une clé IA gratuite dans Réglages pour l\'activer. Le texte anglais s\'affiche déjà.</p>'}}
-    if(Date.now()-lastSound<15000)stt('Écoute en cours.','ok')}
+    if(Date.now()-lastSnd<15000)stt('Écoute en cours.','ok')}
    catch(err){stt('Problème de transcription : '+(err&&err.message||err),'e')}
    busy=false}};
  src.connect(proc);proc.connect(ac.destination);
  }catch(e){stt('Problème : '+(e&&e.message||e)+'. Essayez avec Chrome ou Edge récent, sur ordinateur.','e')}}
+$('#pause').onclick=()=>{PAUSED=!PAUSED;lastSnd=Date.now();$('#pause').classList.toggle('paused',PAUSED);$('#pause').textContent=PAUSED?'▶ Reprendre l\'écoute':'⏸ Mettre en pause';stt(PAUSED?'EN PAUSE. Cliquez sur « Reprendre l\'écoute ».':'Écoute en cours.',PAUSED?'w':'ok')};
 $('#start').onclick=()=>go('tab');$('#mic').onclick=()=>go('mic');
 let first=true;
 const NM='non mentionné';
-$('#stop').onclick=async()=>{stream?.getTracks().forEach(t=>t.stop());const text=transcript.join(' ');const title=$('#title').value||'Réunion sans titre';const notes=$('#notes').value;
+$('#stop').onclick=async()=>{PAUSED=false;$('#pause').classList.add('hide');stream?.getTracks().forEach(t=>t.stop());const text=transcript.join(' ');const title=$('#title').value||'Réunion sans titre';const notes=$('#notes').value;
  const raw=await ai(`Tu es secrétaire de séance expert. À partir de la transcription (anglais) et des notes ci-dessous, rédige en français un compte rendu professionnel. Réponds UNIQUEMENT par un JSON valide de la forme {"participants":[""],"ordre_du_jour":[""],"sujets":[{"titre":"","points":[""]}],"decisions":[""],"conclusions":[""],"actions":[{"action":"","responsable":"","delai":""}],"a_confirmer":[""],"resume":""}. Règles : phrases courtes, aucune invention ; si une information n'est pas dite, écris "non mentionné" (ou liste vide).\n\nNotes : ${notes}\n\nTranscription : ${text}`);
  let cr=null;try{cr=JSON.parse((raw||'').replace(/^```json|```$/g,'').trim())}catch(e){}
  if(!cr)cr={resume:text?NM+' (compte rendu automatique indisponible : ajoutez une clé IA dans Réglages)':NM,participants:[],ordre_du_jour:[],sujets:[{titre:'Notes de séance',points:notes?notes.split('\n').filter(Boolean):[NM]}],decisions:[],conclusions:[],actions:[],a_confirmer:[]};
- const a=load();a.unshift({id:Date.now(),title,date:new Date().toISOString(),text,notes,cr});save(a);sel=a[0].id;$('#tLib').click()};
+ const a=load();a.unshift({id:Date.now(),title,date:new Date().toISOString(),text,notes,cr,mode:MODE});save(a);sel=a[0].id;$('#tLib').click()};
 const ul=l=>l&&l.length?'<ul>'+l.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':`<p class="nm">${NM}</p>`;
 function renderCR(m){const c=m.cr;if(typeof c==='string')return `<pre>${esc(c)}</pre>`;const d=new Date(m.date);
- return `<article class="cr"><h1>Compte rendu de réunion</h1><div class="meta"><div><b>Réunion</b><br>${esc(m.title)}</div><div><b>Date</b><br>${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div><div><b>Heure</b><br>${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div></div>
+ return `<article class="cr"><h1>${m.mode==='video'?'Résumé de la vidéo / formation':'Compte rendu de réunion'}</h1><div class="meta"><div><b>Réunion</b><br>${esc(m.title)}</div><div><b>Date</b><br>${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div><div><b>Heure</b><br>${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div></div>
  <h2>Participants</h2>${ul(c.participants)}<h2>Ordre du jour</h2>${ul(c.ordre_du_jour)}<h2>Résumé exécutif</h2><p>${esc(c.resume||NM)}</p>
  <h2>Sujets abordés</h2>${(c.sujets&&c.sujets.length)?c.sujets.map(x=>`<h3>${esc(x.titre)}</h3>${ul(x.points)}`).join(''):`<p class="nm">${NM}</p>`}
  <h2>Décisions</h2>${ul(c.decisions)}<h2>Conclusions</h2>${ul(c.conclusions)}
@@ -169,6 +201,7 @@ let sel=null;function renderList(){const q=$('#q').value.toLowerCase();const a=l
   $('#dl').onclick=()=>{const css='body{font-family:Calibri,Arial;font-size:11pt}h1{color:#1f2a44}h2{color:#1f2a44;border-bottom:1px solid #999}table{border-collapse:collapse}td,th{border:1px solid #999;padding:4px 8px}';const b=new Blob(['<html><head><meta charset="utf-8"><style>'+css+'</style></head><body>'+renderCR(m)+'</body></html>'],{type:'application/msword'});const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download=m.title+'.doc';l.click()};
   $('#del').onclick=()=>{if(confirm('Supprimer ?')){save(load().filter(x=>x.id!=sel));sel=null;renderList();$('#detail').innerHTML=''}};renderList()})}
 $('#q').oninput=renderList;$('#exp').onclick=()=>{const b=new Blob([JSON.stringify(load(),null,1)]);const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download='comptes-rendus.json';l.click()};
+document.body.dataset.mode=MODE;$('#modeT').textContent=MODEL_L();$('#modeT').onclick=()=>{MODE=MODE==='video'?'meeting':'video';localStorage.mode=MODE;document.body.dataset.mode=MODE;$('#modeT').textContent=MODEL_L()};
 $('#sayB').onclick=()=>{SAYAUTO=true;if(say.length)showSay();else{SAY.classList.remove('hide');SEN.textContent='En attente d\'une question…';SFR.textContent='';SNN.textContent=''}};
 let PA=localStorage.pfActive||'pro';const PS=()=>JSON.parse(localStorage.profiles||'{}');
 function pfShow(){const p=PS()[PA]||{};for(const k of PF)$('#'+k).value=p[k]||'';$('#pfA').classList.toggle('on',PA==='pro');$('#pfB').classList.toggle('on',PA==='perso');$('#pfOk').textContent='';$('#pfAct').textContent='Profil actif : '+(PA==='pro'?'Pro':'Perso')}
