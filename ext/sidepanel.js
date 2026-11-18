@@ -59,6 +59,19 @@ chrome.storage.session.get('st').then(({st})=>{if(st&&st.state){setState(st);cur
 const GAPI='https://generativelanguage.googleapis.com/v1beta/';let AI_ERR='';
 const fetchT=async(u,o,ms=15000)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);try{return await fetch(u,{...(o||{}),signal:c.signal})}catch(e){if(e&&e.name==='AbortError')throw new Error('pas de réponse de Google après '+Math.round(ms/1000)+' secondes (réseau, pare-feu, antivirus ou extension du navigateur qui bloque ?). Essayez avec Chrome ou Edge sans extension de blocage.');throw e}finally{clearTimeout(t)}};
 const gfetch=async(u,o,key,ms)=>{try{return await fetchT(u,{...o,headers:{...(o.headers||{}),'x-goog-api-key':key}},ms)}catch(e){if(e instanceof TypeError)return await fetchT(u+(u.includes('?')?'&':'?')+'key='+encodeURIComponent(key),o,ms);throw e}};
+
+async function diagnose(out){const k=(window.__k||'');const L=[];const show=()=>{out.style.display='block';out.textContent=L.join('\n')};const to=(u,o,ms)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(u,{...o,signal:c.signal}).finally(()=>clearTimeout(t))};
+ const err=e=>e&&e.name==='AbortError'?'aucune réponse après 10 s (bloqué ou réseau coupé)':'erreur réseau : '+(e&&e.message||e);
+ const step=async(name,fn)=>{L.push(name+' … en cours');show();const i=L.length-1,t0=Date.now();try{L[i]=name+' : '+await fn()+' ('+(Date.now()-t0)+' ms)'}catch(e){L[i]=name+' : ÉCHEC, '+err(e)+' ('+(Date.now()-t0)+' ms)'}show()};
+ const mod=async r=>{let j={};try{j=await r.json()}catch(e){}const n=(j.models||[]).length;return 'HTTP '+r.status+(r.ok?' OK, '+n+' modèles visibles':' '+((j.error&&(j.error.status+' : '+j.error.message))||''))};
+ if(!k){L.push('Aucune clé enregistrée : enregistrez-la d\'abord.');show();return}
+ L.push('Clé : '+k.length+' caractères, commence par « '+k.slice(0,3)+' », finit par … '+k.slice(-4));show();
+ await step('0) Internet en général (gstatic.com)',async()=>{await to('https://www.gstatic.com/generate_204',{mode:'no-cors',cache:'no-store'},10000);return 'joignable'});
+ await step('a) Google IA joignable sans clé',async()=>{await to('https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta',{mode:'no-cors',cache:'no-store'},10000);return 'joignable'});
+ await step('b) liste des modèles avec la clé en ?key=',async()=>mod(await to(GAPI+'models?pageSize=5&key='+encodeURIComponent(k),{cache:'no-store'},10000)));
+ await step('c) liste des modèles avec l\'en-tête x-goog-api-key',async()=>mod(await to(GAPI+'models?pageSize=5',{headers:{'x-goog-api-key':k},cache:'no-store'},10000)));
+ L.push('');L.push('Lecture : a) échoue = réseau/pare-feu/extension bloque Google. a) OK mais b) et c) sans réponse = la clé n\'est pas acceptée par ce réseau. HTTP 400/401/403 = Google répond : le message dit pourquoi (clé invalide, API Generative Language non activée, restriction de clé).');show()}
+
 const cleanKey=v=>String(v||'').replace(/[\s"'`]+/g,'');
 async function pickModel(key){try{const r=await gfetch(GAPI+'models?pageSize=200',{},key);const j=await r.json();if(!r.ok){AI_ERR=r.status+' '+(j.error&&j.error.message||'');return null}
  const c=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name.replace('models/','')).map(n=>{const x=n.match(/^gemini-(\d+(?:\.\d+)?)-flash(-lite)?$/);return x?{n,v:parseFloat(x[1]),l:!!x[2]}:null}).filter(Boolean).sort((a,b)=>b.v-a.v||a.l-b.l);
@@ -101,6 +114,7 @@ async function renderList(){const {meetings=[]}=await chrome.storage.local.get('
 $('#q').oninput=renderList;
 chrome.storage.local.get(['key','model'],r=>{if(r.model)$('#model').value=r.model;if(r.key)$('#saved').textContent='Clé enregistrée (…'+String(r.key).slice(-4)+').'});
 $('#save').onclick=async()=>{const o={model:$('#model').value.trim()};const k=cleanKey($('#key').value);if($('#key').value&&!k){$('#saved').textContent='Clé vide.';return}if(k){o.key=k;o.gmodel=''}await chrome.storage.local.set(o);$('#key').value='';$('#saved').textContent=k?(/^(AIza|AQ\.)/.test(k)?'Clé enregistrée (…'+k.slice(-4)+'). Cliquez sur « Tester la clé ».':'Enregistrée, mais elle ne ressemble pas à un format connu (AIza… ou AQ.…) : si la clé est copiée en entier, testez-la quand même. Cliquez sur « Tester la clé ».'):'Modèle enregistré.'};
+$('#diagKey').onclick=async()=>{const {key}=await chrome.storage.local.get(['key']);window.__k=cleanKey(key);diagnose($('#diag'))};
 $('#testKey').onclick=async()=>{try{const {key,model,gmodel}=await chrome.storage.local.get(['key','model','gmodel']);if(!key){$('#saved').textContent='Aucune clé enregistrée.';return}$('#saved').textContent='Test en cours…';const r=await gemini('Réponds uniquement par : OK',cleanKey(key),(model||'').trim(),gmodel||'',m=>chrome.storage.local.set({gmodel:m}));const g=(await chrome.storage.local.get('gmodel')).gmodel;$('#saved').textContent=r?('✅ Clé acceptée. Modèle utilisé : '+((model||'').trim()||g)):('❌ Google répond : '+AI_ERR)}catch(e){$('#saved').textContent='❌ Erreur : '+(e&&e.message||e)}};
 
 $('#sayB').onclick=()=>{SAYAUTO=true;if(say.length)showSay();else{$('#say').classList.remove('hide');$('#sayEn').textContent="En attente d'une question…";$('#sayFr').textContent='';$('#sayN').textContent=''}};
