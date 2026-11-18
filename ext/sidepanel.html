@@ -1,0 +1,32 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Copilote de réunion</title>
+<style>
+:root{--fs:22px;--bg:#12151c;--card:#1b2029;--line:#2b3240;--tx:#eef1f5;--mut:#98a3b5;--acc:#c9b27c;--ok:#8fd3b6;--err:#e0897f}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(900px 500px at 20% -10%,#1a2030,var(--bg));color:var(--tx);font:var(--fs)/1.45 "Segoe UI",system-ui,sans-serif;min-height:100vh}
+header{display:flex;align-items:center;gap:8px;padding:14px 14px 6px}h1{font-size:.8em;margin:0;font-weight:500;color:var(--acc);margin-right:auto}
+button{font:inherit;font-size:.65em;background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:999px;padding:9px 16px;cursor:pointer}
+button.p{background:var(--acc);color:#1b1608;border-color:var(--acc);font-weight:600}button:focus-visible{outline:3px solid var(--acc)}
+.tabs{display:flex;gap:6px;padding:4px 14px 10px;flex-wrap:wrap}.tabs button.on{border-color:var(--acc);color:var(--acc)}
+main{padding:0 14px 24px}.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:14px 18px;margin-bottom:12px}
+.card h2{margin:0 0 6px;font-size:.55em;text-transform:uppercase;letter-spacing:.14em;color:var(--mut);font-weight:500}
+.mut{color:var(--mut);font-size:.65em}.en{color:var(--tx)}.fr{color:var(--ok)}.line{margin:0 0 .5em}.reply{border-left:3px solid var(--acc);padding-left:12px}.reply small{display:block;color:var(--mut);font-size:.65em}
+.state{display:flex;gap:8px;align-items:center;font-size:.7em;padding:0 14px 8px}.dot{width:12px;height:12px;border-radius:50%;background:var(--mut)}.dot.on{background:var(--ok)}.dot.err{background:var(--err)}
+input,textarea{font:inherit;font-size:.7em;background:#10131a;color:var(--tx);border:1px solid var(--line);border-radius:14px;padding:10px 12px;width:100%;margin:6px 0}textarea{min-height:160px}
+.hide{display:none}.item{padding:10px 14px;border:1px solid var(--line);border-radius:16px;margin-bottom:8px;cursor:pointer;font-size:.7em;background:var(--card)}
+.cr{background:#fff;color:#1b2333;border-radius:16px;padding:20px 22px;font-size:.62em;line-height:1.55}.cr h1{font-size:1.5em;margin:0 0 10px;color:#1f2a44}.cr h2{font-size:.9em;text-transform:uppercase;letter-spacing:.1em;color:#7a6a3c;border-bottom:1px solid #e3e6ec;margin:18px 0 6px;padding-bottom:3px}.cr h3{margin:10px 0 2px;font-size:1em}
+.cr .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#f4f5f8;border-radius:10px;padding:10px 14px}.cr ul{margin:3px 0;padding-left:1.1em}.cr .nm{color:#8a90a0;font-style:italic;margin:3px 0}.cr table{width:100%;border-collapse:collapse}.cr th{background:#1f2a44;color:#fff;text-align:left;padding:6px 8px}.cr td{border-bottom:1px solid #e3e6ec;padding:6px 8px;vertical-align:top}.cr .foot{color:#8a90a0;margin-top:16px}
+@media print{body{background:#fff}header,.tabs,.state,#lib .item,.noprint{display:none!important}.card{border:0}}
+</style></head><body>
+<header><h1>Copilote de réunion</h1><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></header>
+<div class="state"><span class="dot" id="dot"></span><span id="st">Prêt. Cliquez sur l'icône du copilote (ou Alt+Maj+C) pendant la réunion.</span></div>
+<div class="tabs"><button class="on" data-t="live">Direct</button><button data-t="notes">Notes</button><button data-t="lib">Comptes rendus</button><button data-t="set">Réglages</button></div>
+<main>
+<section id="live"><div class="card"><h2>Anglais (en direct)</h2><div id="en" class="mut">En attente de l'audio…</div></div>
+<div class="card"><h2>Explication en français</h2><div id="fr"></div></div>
+<div class="card"><h2>Que répondre ?</h2><div id="rep"></div></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button id="sum">Résumer les 5 dernières minutes</button><button class="p" id="end">Terminer + compte rendu</button></div></section>
+<section id="notes" class="hide"><div class="card"><h2>Nom de la réunion</h2><input id="title" placeholder="ex. Webinaire EWOR"><h2 style="margin-top:12px">Mes notes</h2><textarea id="nt" placeholder="Écrivez ici…"></textarea></div></section>
+<section id="lib" class="hide"><input id="q" placeholder="Rechercher…"><div id="list"></div><div id="detail"></div></section>
+<section id="set" class="hide"><div class="card"><h2>Clé IA gratuite (facultatif)</h2><p class="mut">Sans clé : transcription, notes et compte rendu minimal. Avec une clé Gemini : explications, réponses et compte rendu complet. La clé reste dans ce navigateur. Les phrases transcrites sont alors envoyées à Google.</p>
+<input id="key" type="password" placeholder="Clé API"><input id="model" placeholder="Modèle (par défaut gemini-2.0-flash)"><button class="p" id="save">Enregistrer</button> <span class="mut" id="saved"></span></div>
+<div class="card"><h2>Vie privée</h2><p class="mut">Aucun audio n'est enregistré ni conservé. Le texte reste dans ce navigateur. Prévenez les participants que vous utilisez un outil de transcription.</p></div></section>
+</main><script src="sidepanel.js"></script></body></html>
