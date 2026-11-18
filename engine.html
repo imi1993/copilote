@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Moteur de transcription</title></head><body>
+<script type="module">
+// Moteur de transcription (Whisper dans le navigateur). Reçoit des morceaux audio de l'extension, renvoie du texte.
+const P=window.parent;const say=(o)=>P.postMessage(o,'*');
+let asr=null;
+try{
+  say({type:'status',text:'Chargement du modèle (la première fois, environ 1 minute)'});
+  const {pipeline}=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
+  asr=await pipeline('automatic-speech-recognition','onnx-community/whisper-base.en',{device:'webgpu'}).catch(()=>pipeline('automatic-speech-recognition','onnx-community/whisper-base.en'));
+  say({type:'ready'});
+}catch(e){say({type:'error',text:'Modèle non chargé : '+(e&&e.message||e)})}
+let busy=false;
+addEventListener('message',async(e)=>{
+  if(!e.origin.startsWith('chrome-extension://'))return; // seulement l'extension
+  const d=e.data||{};
+  if(d.type==='audio'&&asr&&!busy){busy=true;
+    try{const r=await asr(d.samples);const t=(r.text||'').trim();if(t.length>3)say({type:'text',text:t})}
+    catch(err){say({type:'error',text:String(err&&err.message||err)})}
+    busy=false}
+});
+</script></body></html>
