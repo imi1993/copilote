@@ -14,7 +14,7 @@ addEventListener('message',async(e)=>{
   if(!e.origin.startsWith('chrome-extension://'))return; // seulement l'extension
   const d=e.data||{};
   if(d.type==='audio'&&asr&&!busy){busy=true;say({type:'busy',on:true});
-    try{const r=await asr(d.samples);const t=(r.text||'').replace(/\[[^\]]*\]|\([^)]*\)/g,'').trim();if(t.length>3)say({type:'text',text:t})}
+    try{let r;try{r=await asr(d.samples,{no_repeat_ngram_size:4,repetition_penalty:1.15})}catch(_){r=await asr(d.samples)}const t=(r.text||'').replace(/\[[^\]]*\]|\([^)]*\)/g,'').trim();if(t.length>3)say({type:'text',text:t})}
     catch(err){say({type:'error',text:String(err&&err.message||err)})}
     busy=false;say({type:'busy',on:false})}
 });
