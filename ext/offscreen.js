@@ -1,13 +1,14 @@
 // Capture le son de l'onglet et l'envoie au moteur de transcription (page du site, dans un cadre).
 const ENGINE_ORIGIN = 'https://copilote.harmoniq-ai.fr';
 const frame = document.getElementById('engine');
-let ctx, stream, proc, chunks = [], engineReady = false;
+let ctx, stream, proc, chunks = [], engineReady = false, lastSound = Date.now(), tick = 0;
 const send = (o) => chrome.runtime.sendMessage({ to: 'panel', ...o }).catch(() => {});
 
 window.addEventListener('message', (e) => {
   if (e.origin !== ENGINE_ORIGIN) return;
   const d = e.data || {};
   if (d.type === 'ready') { engineReady = true; send({ type: 'state', state: 'listening' }); }
+  if (d.type === 'busy') send({ type: 'busy', on: d.on });
   if (d.type === 'status') send({ type: 'state', state: 'loading', detail: d.text });
   if (d.type === 'text') send({ type: 'text', text: d.text });
   if (d.type === 'error') send({ type: 'state', state: 'error', error: d.text });
@@ -22,8 +23,11 @@ async function start(streamId) {
   src.connect(proc); proc.connect(ctx.destination);
   chunks = [];
   proc.onaudioprocess = (e) => {
-    chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
-    if (chunks.length >= 32) { // environ 8 secondes
+    const d = new Float32Array(e.inputBuffer.getChannelData(0)); let m = 0; for (const x of d) m = Math.max(m, Math.abs(x));
+    if (m > 0.01) lastSound = Date.now();
+    if (++tick % 3 === 0) chrome.runtime.sendMessage({ to: 'panel', type: 'level', v: m, quiet: Date.now() - lastSound }).catch(() => {});
+    chunks.push(d);
+    if (chunks.length >= 20) { // environ 5 secondes
       const len = chunks.reduce((s, x) => s + x.length, 0), a = new Float32Array(len); let o = 0;
       for (const c of chunks) { a.set(c, o); o += c.length; }
       chunks = [];
@@ -35,8 +39,8 @@ function stop() {
   try { proc && proc.disconnect(); ctx && ctx.close(); stream && stream.getTracks().forEach((t) => t.stop()); } catch (e) {}
   send({ type: 'state', state: 'stopped' });
 }
-chrome.runtime.onMessage.addListener((m) => {
+chrome.runtime.onMessage.addListener((m, sender, sendResponse) => {
   if (m.to !== 'offscreen') return;
-  if (m.type === 'start') start(m.streamId).catch((e) => send({ type: 'state', state: 'error', error: String(e && e.message || e) }));
+  if (m.type === 'start') { sendResponse({ ok: true }); lastSound = Date.now(); start(m.streamId).catch((e) => send({ type: 'state', state: 'error', error: String(e && e.message || e) })); }
   if (m.type === 'stop') stop();
 });
