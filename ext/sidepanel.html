@@ -29,18 +29,27 @@ html[data-theme=light] .key h2{color:#b4bbc8}
 html[data-theme=light] .key .reply{border-left-color:#fff}
 html[data-theme=light] .state{color:#111318}
 .tt{font-size:.5em}
+
+#say{position:fixed;top:0;left:0;right:0;z-index:50;background:#111318;color:#fff;padding:16px 24px 14px;border-radius:0 0 26px 26px;box-shadow:0 12px 40px #0007}
+#say.hide{display:none}#say .k{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#9aa3b2}
+#say .s{font-size:calc(var(--fs)*1.6);line-height:1.15;font-weight:500;margin:6px 0}#say .s b{color:#ffd86b;font-weight:800}
+#say .f{font-size:calc(var(--fs)*.75);color:#8fd3b6}#say .b{display:flex;gap:8px;margin-top:8px}
+#say button{background:#ffffff22;color:#fff;border-color:transparent;font-size:18px}
+#say .n{font-size:14px;color:#9aa3b2;margin-top:4px}
+.pf button.on{background:#111318;color:#fff}.pf label{display:block;font-weight:600;margin:12px 0 4px}.pf textarea{min-height:80px;width:100%}
 </style></head><body><script>document.documentElement.dataset.theme="light"</script>
-<header><h1>Copilote de réunion</h1><button id="theme">Clair / Sombre</button><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></header>
+<div id="say" class="hide"><div class="k">À dire</div><div class="s" id="sayEn">…</div><div class="f" id="sayFr"></div><div class="n" id="sayN"></div><div class="b"><button id="sayP" aria-label="Phrase précédente">◀</button><button id="sayN2" aria-label="Phrase suivante">▶</button><button id="sayX">Fermer</button></div></div><header><h1>Copilote de réunion</h1><button id="theme">Clair / Sombre</button><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></header>
 <div class="state"><span class="dot" id="dot"></span><span id="st">Prêt. Cliquez sur l'icône du copilote (ou Alt+Maj+C) pendant la réunion.</span></div>
 <div class="tabs"><button class="on" data-t="live">Direct</button><button data-t="notes">Notes</button><button data-t="lib">Comptes rendus</button><button data-t="set">Réglages</button></div>
 <main>
 <section id="live"><div class="card key"><h2>Anglais (en direct)</h2><div id="en" class="mut">En attente de l'audio…</div></div>
 <div class="card key"><h2>Explication en français</h2><div id="fr"></div></div>
 <div class="card key"><h2>Que répondre ?</h2><div id="rep"></div></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap"><button id="sum">Résumer les 5 dernières minutes</button><button class="p" id="end">Terminer + compte rendu</button></div></section>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button id="sum">Résumer les 5 dernières minutes</button><button id="sayB">À dire</button><button id="pfT">Profil : Pro</button><button class="p" id="end">Terminer + compte rendu</button></div></section>
 <section id="notes" class="hide"><div class="card"><h2>Nom de la réunion</h2><input id="title" placeholder="ex. Webinaire EWOR"><h2 style="margin-top:12px">Mes notes</h2><textarea id="nt" placeholder="Écrivez ici…"></textarea></div></section>
 <section id="lib" class="hide"><input id="q" placeholder="Rechercher…"><div id="list"></div><div id="detail"></div></section>
 <section id="set" class="hide"><div class="card"><h2>Clé IA gratuite (facultatif)</h2><p class="mut">Sans clé : transcription, notes et compte rendu minimal. Avec une clé Gemini : explications, réponses et compte rendu complet. La clé reste dans ce navigateur. Les phrases transcrites sont alors envoyées à Google.</p>
-<input id="key" type="password" placeholder="Clé API"><input id="model" placeholder="Modèle (par défaut gemini-2.0-flash)"><button class="p" id="save">Enregistrer</button> <span class="mut" id="saved"></span></div>
+<input id="key" type="password" placeholder="Clé API"><input id="model" placeholder="Modèle (par défaut gemini-2.0-flash)"><button class="p" id="save">Enregistrer</button> <span class="mut" id="saved"></span></div><div class="card pf" id="pf"><h2>Mon profil</h2><div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap"><button id="pfA" class="on">Pro (clients, incubateurs, agences)</button><button id="pfB">Perso (entretiens d'embauche)</button></div><p class="mut">Facultatif. Écrivez vous-même, simplement. Ce texte reste dans ce navigateur, mais il est ENVOYÉ à l'IA externe (Gemini, avec votre clé) à chaque demande de réponse : n'y mettez rien de secret.</p>
+<label>Mon parcours</label><textarea id="pf1" placeholder="À remplir par vous"></textarea><label>Harmoniq AI : ce que c'est</label><textarea id="pf2" placeholder="À remplir par vous"></textarea><label>Mon offre</label><textarea id="pf3" placeholder="À remplir par vous"></textarea><label>Ce que je cherche</label><textarea id="pf4" placeholder="À remplir par vous"></textarea><br><button class="p" id="pfSave">Enregistrer le profil</button> <span class="mut" id="pfOk"></span><p class="mut" id="pfAct"></p></div>
 <div class="card"><h2>Vie privée</h2><p class="mut">Aucun audio n'est enregistré ni conservé. Le texte reste dans ce navigateur. Prévenez les participants que vous utilisez un outil de transcription.</p></div></section>
 </main><script src="sidepanel.js"></script></body></html>
