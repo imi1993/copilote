@@ -27,14 +27,19 @@ chrome.action.onClicked.addListener(async (tab) => {
     const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: tab.id });
     await ensureOffscreen();
     await chrome.storage.session.set({ listening: true, tabId: tab.id, platform: platformOf(tab.url) || 'Onglet' });
-    chrome.runtime.sendMessage({ to: 'offscreen', type: 'start', streamId });
-    chrome.runtime.sendMessage({ to: 'panel', type: 'state', state: 'starting', platform: platformOf(tab.url) || 'Onglet' }).catch(() => {});
+    chrome.storage.session.set({ st: { state: 'starting', platform: platformOf(tab.url) || 'Onglet', at: Date.now() } });
+    for (let i = 0; i < 8; i++) { // l'écran de capture peut mettre un instant à être prêt
+      const ok = await chrome.runtime.sendMessage({ to: 'offscreen', type: 'start', streamId }).catch(() => null);
+      if (ok && ok.ok) break;
+      await new Promise((r) => setTimeout(r, 400));
+    }
   } catch (e) {
     chrome.runtime.sendMessage({ to: 'panel', type: 'state', state: 'error', error: String(e && e.message || e) }).catch(() => {});
   }
 });
 
 chrome.runtime.onMessage.addListener((m) => {
+  if (m.to === 'panel' && m.type === 'state') chrome.storage.session.get('st').then(({ st = {} }) => chrome.storage.session.set({ st: { state: m.state, platform: st.platform, detail: m.detail, error: m.error, at: Date.now() } }));
   if (m.to !== 'bg') return;
   if (m.type === 'stop') {
     chrome.runtime.sendMessage({ to: 'offscreen', type: 'stop' }).catch(() => {});
