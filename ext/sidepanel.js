@@ -23,7 +23,16 @@ Réponds en 3 parties séparées par "||" :
 Si on pose une question sur l'utilisatrice, utilise UNIQUEMENT le profil. Si l'information manque dans le profil, n'invente rien : partie 2 = "I **prefer** to **confirm** this and come back to you." et partie 3 = "Je préfère confirmer et revenir vers vous."`}
 // états
 const STATES={starting:['Démarrage…',''],loading:['Préparation du moteur de transcription…',''],listening:['En écoute','on'],stopped:['Écoute arrêtée',''],error:['Problème','err']};
-function setState(m){const [t,c]=STATES[m.state]||['',''];let txt=t;if(m.platform)txt+=' ('+m.platform+')';if(m.detail)txt+=' : '+m.detail;if(m.error)txt+=' : '+m.error+'. Recliquez sur l\'icône du copilote pour réessayer.';$('#st').textContent=txt;$('#dot').className='dot '+c}
+function setState(m){lastM=m;curState=m.state;if(m.state==='loading'&&!loadingSince)loadingSince=Date.now();if(m.state!=='loading')loadingSince=0;const [t,c]=STATES[m.state]||['',''];let txt=t;if(m.platform)txt+=' ('+m.platform+')';if(m.detail)txt+=' : '+m.detail;if(m.error)txt+=' : '+m.error+'. Recliquez sur l\'icône du copilote pour réessayer.';$('#st').textContent=txt;$('#dot').className='dot '+c}
+// état persistant + niveau sonore + messages explicites
+let lastM=null,curState='',busyNow=false,quietMs=0,loadingSince=0;
+function paint(){const st=document.querySelector('.state');let warn='';
+ if(curState==='listening'&&quietMs>15000)warn="Aucun son détecté dans cet onglet depuis 15 secondes. Le copilote entend le son de l'ONGLET (les autres participants, une vidéo), pas votre micro. Si vous êtes seule dans la réunion, lancez une vidéo anglaise dans un onglet et cliquez sur l'icône du copilote DANS cet onglet.";
+ else if(curState==='loading'&&loadingSince&&Date.now()-loadingSince>180000)warn='Le moteur met plus de 3 minutes à se charger. Vérifiez la connexion, puis fermez et recliquez sur l\'icône.';
+ else if(curState==='listening'&&busyNow)warn='Transcription en cours…';
+ if(warn){$('#st').textContent=warn}else if(lastM){setState(lastM)}st.classList.toggle('warn',!!warn&&curState==='listening'&&quietMs>15000);st.classList.toggle('err2',curState==='error')}
+setInterval(paint,2000);
+chrome.storage.session.get('st').then(({st})=>{if(st&&st.state){setState(st);curState=st.state;if(st.state==='loading'&&!loadingSince)loadingSince=st.at}});
 // IA (Gemini, clé facultative)
 async function ai(prompt){const {key,model}=await chrome.storage.local.get(['key','model']);if(!key)return null;
  try{const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model||'gemini-2.0-flash'}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});const j=await r.json();return j.candidates?.[0]?.content?.parts?.[0]?.text||null}catch(e){return null}}
@@ -31,7 +40,7 @@ async function onText(t){transcript.push({t,at:Date.now()});if($('#en').classLis
  $('#en').insertAdjacentHTML('beforeend',`<p class="line en">${esc(t)}</p>`);
  const {profiles={},pfActive='pro'}=await chrome.storage.local.get(['profiles','pfActive']);const a=await ai(coachPrompt(t,profileText(profiles[pfActive]||{})));
  if(!a)return;const [x,y,z]=a.split('||').map(q=>q.trim());$('#fr').insertAdjacentHTML('beforeend',`<p class="line fr">${esc(x)}</p>`);if(y&&y!=='-'){$('#rep').innerHTML=`<div class="reply">${bold(y)}<small>${esc(z&&z!=='-'?z:'')}</small></div>`;pushSay(y,z&&z!=='-'?z:'')}}
-chrome.runtime.onMessage.addListener(m=>{if(m.to!=='panel')return;if(m.type==='state')setState(m);if(m.type==='text')onText(m.text)});
+chrome.runtime.onMessage.addListener(m=>{if(m.to!=='panel')return;if(m.type==='level'){$('#lvlB').style.width=Math.min(100,Math.round(m.v*900))+'%';quietMs=m.quiet||0;paint();return}if(m.type==='busy'){busyNow=m.on;paint();return}if(m.type==='state')setState(m);if(m.type==='text')onText(m.text)});
 $('#sum').onclick=async()=>{const since=Date.now()-5*60000;const txt=transcript.filter(x=>x.at>=since).map(x=>x.t).join(' ');if(!txt){$('#fr').insertAdjacentHTML('beforeend','<p class="line mut">Rien à résumer pour l\'instant.</p>');return}
  const r=await ai(`Résume en français, en 4 puces courtes maximum, sans rien inventer : ${txt}`);$('#fr').insertAdjacentHTML('beforeend',`<div class="card"><h2>Résumé (5 dernières minutes)</h2>${r?esc(r).replace(/\n/g,'<br>'):'<span class="mut">Clé IA nécessaire (Réglages).</span>'}</div>`)};
 // compte rendu
