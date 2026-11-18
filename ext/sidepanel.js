@@ -55,8 +55,19 @@ function paint(){const st=document.querySelector('.state');let warn='';
 setInterval(paint,2000);
 chrome.storage.session.get('st').then(({st})=>{if(st&&st.state){setState(st);curState=st.state;if(st.state==='loading'&&!loadingSince)loadingSince=st.at}});
 // IA (Gemini, clé facultative)
-async function ai(prompt){const {key,model}=await chrome.storage.local.get(['key','model']);if(!key)return null;
- try{const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model||'gemini-2.0-flash'}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});const j=await r.json();return j.candidates?.[0]?.content?.parts?.[0]?.text||null}catch(e){return null}}
+
+const GAPI='https://generativelanguage.googleapis.com/v1beta/';let AI_ERR='';
+const cleanKey=v=>String(v||'').replace(/[\s"'`]+/g,'');
+async function pickModel(key){try{const r=await fetch(GAPI+'models?pageSize=200&key='+encodeURIComponent(key));const j=await r.json();if(!r.ok){AI_ERR=r.status+' '+(j.error&&j.error.message||'');return null}
+ const c=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name.replace('models/','')).map(n=>{const x=n.match(/^gemini-(\d+(?:\.\d+)?)-flash(-lite)?$/);return x?{n,v:parseFloat(x[1]),l:!!x[2]}:null}).filter(Boolean).sort((a,b)=>b.v-a.v||a.l-b.l);
+ return c.length?c[0].n:((j.models||[]).some(m=>m.name==='models/gemini-flash-latest')?'gemini-flash-latest':null)}catch(e){AI_ERR='réseau : '+e.message;return null}}
+async function gemini(prompt,key,model,cache,saveModel){AI_ERR='';if(!key)return null;
+ for(let t=0;t<2;t++){let m=model||cache;if(!m){m=await pickModel(key);if(!m){AI_ERR=AI_ERR||'aucun modèle Gemini disponible pour cette clé';return null}saveModel(m);cache=m}
+  try{const r=await fetch(GAPI+'models/'+m+':generateContent?key='+encodeURIComponent(key),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});const j=await r.json();
+   if(r.ok){const x=j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts&&j.candidates[0].content.parts[0]&&j.candidates[0].content.parts[0].text;if(x)return x;AI_ERR='réponse vide (contenu bloqué ?)';return null}
+   AI_ERR=r.status+' '+(j.error&&j.error.message||'');if((r.status===404||r.status===400)&&!model&&t===0){cache='';saveModel('');continue}return null}catch(e){AI_ERR='réseau : '+e.message;return null}}return null}
+async function ai(prompt){const {key,model,gmodel}=await chrome.storage.local.get(['key','model','gmodel']);const r=await gemini(prompt,cleanKey(key),(model||'').trim(),gmodel||'',m=>chrome.storage.local.set({gmodel:m}));if(!r&&key&&AI_ERR)errAi();return r}
+let errShown='';function errAi(){if(errShown===AI_ERR)return;errShown=AI_ERR;$('#fr').insertAdjacentHTML('beforeend','<p class="line mut">Google a refusé la demande IA : '+esc(AI_ERR)+'</p>')}
 async function onText(raw){const parts=freshParts(raw);if(!parts.length)return;const t=parts.join(' ');transcript.push({t,at:Date.now()});if($('#en').classList.contains('mut'))$('#en').innerHTML='',$('#en').classList.remove('mut');
  for(const p of parts)$('#en').insertAdjacentHTML('beforeend',`<p class="line en">${esc(p)}</p>`);
  {const {key}=await chrome.storage.local.get('key');if(!key&&!noteFr){noteFr=true;$('#fr').innerHTML='<p class="line mut">Explication en français : ajoutez une clé IA gratuite dans Réglages pour l\'activer. Le texte anglais s\'affiche déjà.</p>'}}
@@ -86,8 +97,9 @@ async function renderList(){const {meetings=[]}=await chrome.storage.local.get('
   $('#del').onclick=async()=>{if(confirm('Supprimer ?')){await chrome.storage.local.set({meetings:meetings.filter(x=>x.id!=id)});$('#detail').innerHTML='';renderList()}}};
  document.querySelectorAll('.item').forEach(e=>e.onclick=()=>show(e.dataset.id));if(sel)show(sel)}
 $('#q').oninput=renderList;
-chrome.storage.local.get(['key','model'],r=>{if(r.model)$('#model').value=r.model;if(r.key)$('#saved').textContent='Clé enregistrée.'});
-$('#save').onclick=async()=>{const o={model:$('#model').value.trim()};if($('#key').value)o.key=$('#key').value.trim();await chrome.storage.local.set(o);$('#key').value='';$('#saved').textContent='Enregistré.'};
+chrome.storage.local.get(['key','model'],r=>{if(r.model)$('#model').value=r.model;if(r.key)$('#saved').textContent='Clé enregistrée (…'+String(r.key).slice(-4)+').'});
+$('#save').onclick=async()=>{const o={model:$('#model').value.trim()};const k=cleanKey($('#key').value);if($('#key').value&&!k){$('#saved').textContent='Clé vide.';return}if(k){o.key=k;o.gmodel=''}await chrome.storage.local.set(o);$('#key').value='';$('#saved').textContent=k?(k.startsWith('AIza')?'Clé enregistrée (…'+k.slice(-4)+'). Cliquez sur « Tester la clé ».':'Enregistrée, mais elle ne commence pas par « AIza » : vérifiez la clé. Cliquez sur « Tester la clé ».'):'Modèle enregistré.'};
+$('#testKey').onclick=async()=>{const {key,model,gmodel}=await chrome.storage.local.get(['key','model','gmodel']);if(!key){$('#saved').textContent='Aucune clé enregistrée.';return}$('#saved').textContent='Test en cours…';const r=await gemini('Réponds uniquement par : OK',cleanKey(key),(model||'').trim(),gmodel||'',m=>chrome.storage.local.set({gmodel:m}));const g=(await chrome.storage.local.get('gmodel')).gmodel;$('#saved').textContent=r?('✅ Clé acceptée. Modèle utilisé : '+((model||'').trim()||g)):('❌ Google répond : '+AI_ERR)};
 
 $('#sayB').onclick=()=>{SAYAUTO=true;if(say.length)showSay();else{$('#say').classList.remove('hide');$('#sayEn').textContent="En attente d'une question…";$('#sayFr').textContent='';$('#sayN').textContent=''}};
 let PA='pro';const lab=()=>PA==='pro'?'Pro':'Perso';
