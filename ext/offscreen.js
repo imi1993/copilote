@@ -15,6 +15,7 @@ window.addEventListener('message', (e) => {
 });
 
 async function start(streamId) {
+  if (ctx) stop(); // jamais deux captures en même temps
   stream = await navigator.mediaDevices.getUserMedia({ audio: { mandatory: { chromeMediaSource: 'tab', chromeMediaSourceId: streamId } }, video: false });
   ctx = new AudioContext({ sampleRate: 16000 });
   const src = ctx.createMediaStreamSource(stream);
