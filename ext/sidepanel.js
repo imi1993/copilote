@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s);const NM='non mentionné';let fs=22,transcript=[],sel=null;
 const setFs=v=>{fs=Math.max(16,Math.min(48,v));document.documentElement.style.setProperty('--fs',fs+'px');chrome.storage.local.set({fs})};
-chrome.storage.local.get(['fs'],r=>setFs(r.fs||22));chrome.storage.local.get(['theme'],r=>{document.documentElement.dataset.theme=r.theme||'light'});$('#theme').onclick=()=>{const d=document.documentElement;d.dataset.theme=d.dataset.theme==='light'?'dark':'light';chrome.storage.local.set({theme:d.dataset.theme})};$('#fm').onclick=()=>setFs(fs-3);$('#fp').onclick=()=>setFs(fs+3);
+chrome.storage.local.get(['fs'],r=>setFs(r.fs||22));chrome.storage.local.get(['theme'],r=>{document.documentElement.dataset.theme=r.theme||'glass'});$('#theme').onclick=()=>{const d=document.documentElement;const T=['light','glass','dark'];d.dataset.theme=T[(T.indexOf(d.dataset.theme)+1)%3];chrome.storage.local.set({theme:d.dataset.theme})};$('#fm').onclick=()=>setFs(fs-3);$('#fp').onclick=()=>setFs(fs+3);
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));for(const s of ['live','notes','lib','set'])$('#'+s).classList.toggle('hide',s!==b.dataset.t);if(b.dataset.t==='lib')renderList()});
 const esc=x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
 
@@ -33,9 +33,18 @@ function freshParts(t){if(!isEnglish(t))return [];let x=t.replace(/\s+/g,' ').tr
  const out=[];for(let s of (x.match(/[^.!?]+[.!?]*/g)||[x])){s=s.trim();const n=normS(s);if(n.length<4)continue;
   if(seenS.some(y=>y===n||y.includes(n)))continue;seenS.push(n);if(seenS.length>60)seenS.shift();out.push(s)}return out}
 let noteFr=false;
+
+let MODE='meeting';const MODEL_L=()=>MODE==='video'?'Mode : Vidéo / formation':'Mode : Réunion';
+const MEET_INTRO="${intro()}";
+const VID_INTRO="Tu es un assistant pédagogique. À partir de la transcription (anglais) d'une vidéo ou formation et des notes, rédige en français un résumé de formation. Utilise le même JSON : participants = intervenants cités ; ordre_du_jour = plan de la formation ; sujets = notions clés expliquées simplement ; decisions = liste vide ; conclusions = à retenir ; actions = à réviser ou à faire ; a_confirmer = points à vérifier ; resume = résumé en 5 lignes.";
+const intro=()=>MODE==='video'?VID_INTRO:MEET_INTRO;
+const VID_COACH=(t)=>`Tu es un assistant qui explique en direct une vidéo ou une formation en anglais à une francophone qui comprend mal l'anglais. Phrase entendue (anglais) : "${t}". Réponds par UNE explication en français, simple et fidèle, en 1 ou 2 phrases ; explique brièvement les termes techniques. N'invente rien.`;
+let modeManual=false;chrome.storage.local.get(['mode'],r=>{if(r.mode){MODE=r.mode;modeManual=true}document.body.dataset.mode=MODE;$('#modeT').textContent=MODEL_L()});
+$('#modeT').onclick=()=>{MODE=MODE==='video'?'meeting':'video';modeManual=true;chrome.storage.local.set({mode:MODE});document.body.dataset.mode=MODE;$('#modeT').textContent=MODEL_L()};
+let isPaused=false;$('#pause').onclick=()=>chrome.runtime.sendMessage({to:'offscreen',type:isPaused?'resume':'pause'}).catch(()=>{});
 // états
-const STATES={starting:['Démarrage…',''],loading:['Préparation du moteur de transcription…',''],listening:['En écoute','on'],stopped:['Écoute arrêtée',''],error:['Problème','err']};
-function setState(m){lastM=m;curState=m.state;if(m.state==='loading'&&!loadingSince)loadingSince=Date.now();if(m.state!=='loading')loadingSince=0;const [t,c]=STATES[m.state]||['',''];let txt=t;if(m.platform)txt+=' ('+m.platform+')';if(m.detail)txt+=' : '+m.detail;if(m.error)txt+=' : '+m.error+'. Recliquez sur l\'icône du copilote pour réessayer.';$('#st').textContent=txt;$('#dot').className='dot '+c}
+const STATES={starting:['Démarrage…',''],loading:['Préparation du moteur de transcription…',''],listening:['En écoute','on'],stopped:['Écoute arrêtée',''],paused:['EN PAUSE : cliquez sur « Reprendre l\'écoute »','warnp'],error:['Problème','err']};
+function setState(m){lastM=m;isPaused=m.state==='paused';$('#pause').classList.toggle('paused',isPaused);$('#pause').textContent=isPaused?'▶ Reprendre l\'écoute':'⏸ Mettre en pause';if(m.state==='starting'&&!modeManual&&m.platform){MODE=m.platform==='Onglet'?'video':'meeting';document.body.dataset.mode=MODE;$('#modeT').textContent=MODEL_L()}curState=m.state;if(m.state==='loading'&&!loadingSince)loadingSince=Date.now();if(m.state!=='loading')loadingSince=0;const [t,c]=STATES[m.state]||['',''];let txt=t;if(m.platform)txt+=' ('+m.platform+')';if(m.detail)txt+=' : '+m.detail;if(m.error)txt+=' : '+m.error+'. Recliquez sur l\'icône du copilote pour réessayer.';$('#st').textContent=txt;$('#dot').className='dot '+c}
 // état persistant + niveau sonore + messages explicites
 let lastM=null,curState='',busyNow=false,quietMs=0,loadingSince=0;
 function paint(){const st=document.querySelector('.state');let warn='';
@@ -51,14 +60,14 @@ async function ai(prompt){const {key,model}=await chrome.storage.local.get(['key
 async function onText(raw){const parts=freshParts(raw);if(!parts.length)return;const t=parts.join(' ');transcript.push({t,at:Date.now()});if($('#en').classList.contains('mut'))$('#en').innerHTML='',$('#en').classList.remove('mut');
  for(const p of parts)$('#en').insertAdjacentHTML('beforeend',`<p class="line en">${esc(p)}</p>`);
  {const {key}=await chrome.storage.local.get('key');if(!key&&!noteFr){noteFr=true;$('#fr').innerHTML='<p class="line mut">Explication en français : ajoutez une clé IA gratuite dans Réglages pour l\'activer. Le texte anglais s\'affiche déjà.</p>'}}
- const {profiles={},pfActive='pro'}=await chrome.storage.local.get(['profiles','pfActive']);const a=await ai(coachPrompt(t,profileText(profiles[pfActive]||{})));
+ const {profiles={},pfActive='pro'}=await chrome.storage.local.get(['profiles','pfActive']);const a=await ai(MODE==='video'?VID_COACH(t):coachPrompt(t,profileText(profiles[pfActive]||{})));
  if(!a)return;const [x,y,z]=a.split('||').map(q=>q.trim());$('#fr').insertAdjacentHTML('beforeend',`<p class="line fr">${esc(x)}</p>`);if(y&&y!=='-'){$('#rep').innerHTML=`<div class="reply">${bold(y)}<small>${esc(z&&z!=='-'?z:'')}</small></div>`;pushSay(y,z&&z!=='-'?z:'')}}
 chrome.runtime.onMessage.addListener(m=>{if(m.to!=='panel')return;if(m.type==='level'){$('#lvlB').style.width=Math.min(100,Math.round(m.v*900))+'%';quietMs=m.quiet||0;paint();return}if(m.type==='busy'){busyNow=m.on;paint();return}if(m.type==='state')setState(m);if(m.type==='text')onText(m.text)});
 $('#sum').onclick=async()=>{const since=Date.now()-5*60000;const txt=transcript.filter(x=>x.at>=since).map(x=>x.t).join(' ');if(!txt){$('#fr').insertAdjacentHTML('beforeend','<p class="line mut">Rien à résumer pour l\'instant.</p>');return}
  const r=await ai(`Résume en français, en 4 puces courtes maximum, sans rien inventer : ${txt}`);$('#fr').insertAdjacentHTML('beforeend',`<div class="card"><h2>Résumé (5 dernières minutes)</h2>${r?esc(r).replace(/\n/g,'<br>'):'<span class="mut">Clé IA nécessaire (Réglages).</span>'}</div>`)};
 // compte rendu
 const ul=l=>l&&l.length?'<ul>'+l.map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>':`<p class="nm">${NM}</p>`;
-function renderCR(m){const c=m.cr;const d=new Date(m.date);return `<article class="cr"><h1>Compte rendu de réunion</h1><div class="meta"><div><b>Réunion</b><br>${esc(m.title)}</div><div><b>Date</b><br>${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div></div>
+function renderCR(m){const c=m.cr;const d=new Date(m.date);return `<article class="cr"><h1>${m.mode==='video'?'Résumé de la vidéo / formation':'Compte rendu de réunion'}</h1><div class="meta"><div><b>Réunion</b><br>${esc(m.title)}</div><div><b>Date</b><br>${d.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div></div>
 <h2>Participants</h2>${ul(c.participants)}<h2>Ordre du jour</h2>${ul(c.ordre_du_jour)}<h2>Résumé exécutif</h2><p>${esc(c.resume||NM)}</p>
 <h2>Sujets abordés</h2>${(c.sujets&&c.sujets.length)?c.sujets.map(x=>`<h3>${esc(x.titre)}</h3>${ul(x.points)}`).join(''):`<p class="nm">${NM}</p>`}
 <h2>Décisions</h2>${ul(c.decisions)}<h2>Conclusions</h2>${ul(c.conclusions)}
@@ -68,7 +77,7 @@ $('#end').onclick=async()=>{chrome.runtime.sendMessage({to:'bg',type:'stop'});co
  const raw=await ai(`Tu es secrétaire de séance expert. À partir de la transcription (anglais) et des notes ci-dessous, rédige en français un compte rendu professionnel. Réponds UNIQUEMENT par un JSON valide : {"participants":[""],"ordre_du_jour":[""],"sujets":[{"titre":"","points":[""]}],"decisions":[""],"conclusions":[""],"actions":[{"action":"","responsable":"","delai":""}],"a_confirmer":[""],"resume":""}. Phrases courtes, aucune invention ; si une information n'est pas dite, écris "non mentionné" ou laisse la liste vide.\n\nNotes : ${notes}\n\nTranscription : ${text}`);
  let cr=null;try{cr=JSON.parse((raw||'').replace(/^```json|```$/g,'').trim())}catch(e){}
  if(!cr)cr={resume:text?NM+' (compte rendu automatique indisponible : ajoutez une clé IA dans Réglages)':NM,participants:[],ordre_du_jour:[],sujets:[{titre:'Notes de séance',points:notes?notes.split('\n').filter(Boolean):[NM]}],decisions:[],conclusions:[],actions:[],a_confirmer:[]};
- const {meetings=[]}=await chrome.storage.local.get('meetings');const m={id:Date.now(),title,date:new Date().toISOString(),text,notes,cr};meetings.unshift(m);await chrome.storage.local.set({meetings});sel=m.id;transcript=[];
+ const {meetings=[]}=await chrome.storage.local.get('meetings');const m={id:Date.now(),title,date:new Date().toISOString(),text,notes,cr,mode:MODE};meetings.unshift(m);await chrome.storage.local.set({meetings});sel=m.id;transcript=[];
  seenS=[];noteFr=false;$('#en').className='mut';$('#en').textContent="En attente de l'audio…";$('#fr').innerHTML='';$('#rep').innerHTML='';document.querySelector('[data-t=lib]').click()};
 async function renderList(){const {meetings=[]}=await chrome.storage.local.get('meetings');const q=$('#q').value.toLowerCase();const a=meetings.filter(m=>(m.title+JSON.stringify(m.cr)+m.text).toLowerCase().includes(q));
  $('#list').innerHTML=a.map(m=>`<div class="item" data-id="${m.id}"><b>${esc(m.title)}</b><br><span class="mut">${new Date(m.date).toLocaleString('fr-FR')}</span></div>`).join('')||'<p class="mut">Aucun compte rendu.</p>';
@@ -87,3 +96,5 @@ async function pfSet(v){PA=v;await chrome.storage.local.set({pfActive:v});pfShow
 chrome.storage.local.get('pfActive',r=>{PA=r.pfActive||'pro';pfShow()});
 $('#pfA').onclick=()=>pfSet('pro');$('#pfB').onclick=()=>pfSet('perso');$('#pfT').onclick=()=>pfSet(PA==='pro'?'perso':'pro');
 $('#pfSave').onclick=async()=>{const {profiles={}}=await chrome.storage.local.get('profiles');const o={};for(const k of PF)o[k]=$('#'+k).value;profiles[PA]=o;await chrome.storage.local.set({profiles});$('#pfOk').textContent='Enregistré ('+lab()+', dans ce navigateur).'};
+
+const setGa=v=>{document.documentElement.style.setProperty('--ga',v/100);$('#ga').value=v;$('#gav').textContent=v+' %'};chrome.storage.local.get('ga',r=>setGa(r.ga||50));$('#ga').oninput=e=>{setGa(+e.target.value);chrome.storage.local.set({ga:+e.target.value})};
