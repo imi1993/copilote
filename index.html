@@ -45,6 +45,10 @@ html[data-theme=light] .state{color:#111318}
 #say button{background:#ffffff22;color:#fff;border-color:transparent;font-size:18px}
 #say .n{font-size:14px;color:#9aa3b2;margin-top:4px}
 .pf button.on{background:#111318;color:#fff}.pf label{display:block;font-weight:600;margin:12px 0 4px}.pf textarea{min-height:80px;width:100%}
+
+.stbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:#fffd;border:2px solid #111318;border-radius:18px;padding:12px 18px;margin:0 0 14px;font-size:calc(var(--fs)*.6);font-weight:600;color:#111318}
+.stbar[data-c=ok]{border-color:#1f9d6b}.stbar[data-c=e]{border-color:#c0392b;background:#fdecea}.stbar[data-c=w]{border-color:#b8860b}
+.lvl{display:inline-block;width:160px;height:14px;border-radius:9px;background:#d5d9e0;overflow:hidden}.lvl i{display:block;height:100%;width:0;background:#1f9d6b;transition:width .15s}
 </style></head><body><script>document.documentElement.dataset.theme=localStorage.theme||"light"</script>
 <div id="say" class="hide"><div class="k">À dire</div><div class="s" id="sayEn">…</div><div class="f" id="sayFr"></div><div class="n" id="sayN"></div><div class="b"><button id="sayP" aria-label="Phrase précédente">◀</button><button id="sayN2" aria-label="Phrase suivante">▶</button><button id="sayX">Fermer</button></div></div><header><h1>Copilote de réunion</h1>
 <nav style="display:flex;gap:8px"><button id="tLive" class="on">En direct</button><button id="tLib">Comptes rendus</button><button id="tSet">Réglages</button></nav>
@@ -52,9 +56,9 @@ html[data-theme=light] .state{color:#111318}
 <main>
 <section id="live">
  <div class="notice">Pensez à prévenir les participants que vous utilisez un outil de transcription. Aucun audio n'est enregistré ; le texte reste dans ce navigateur.</div><br>
- <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+ <div class="stbar" id="stbar"><span id="sttT">Prêt. Cliquez sur « Partager l'onglet + son », ou sur « Essai démo ».</span><span class="lvl" title="Niveau du son"><i id="lvlB"></i></span></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
   <input id="title" placeholder="Nom de la réunion (ex. Webinaire EWOR)" style="max-width:520px">
-  <button class="p" id="start">Partager l'onglet + son</button><button id="demo">Essai démo</button><button id="pip">Mini-fenêtre</button><button id="sayB">À dire</button><button id="pfT">Profil : Pro</button><button id="stop" class="hide">Terminer + compte rendu</button></div>
+  <button class="p" id="start">Partager l'onglet + son</button><button id="mic">Test avec mon micro</button><button id="demo">Essai démo</button><button id="pip">Mini-fenêtre</button><button id="sayB">À dire</button><button id="pfT">Profil : Pro</button><button id="stop" class="hide">Terminer + compte rendu</button></div>
  <div class="grid">
   <div class="card key"><h2>Anglais (en direct)</h2><div id="en"><span class="mut">En attente de l'audio…</span></div></div>
   <div class="card key"><h2>Explication en français</h2><div id="fr"></div></div>
@@ -103,21 +107,37 @@ async function ai(prompt){const k=localStorage.key;if(!k)return null;
  const j=await r.json();return j.candidates?.[0]?.content?.parts?.[0]?.text||null}catch(e){return null}}
 async function explain(text){const p=(JSON.parse(localStorage.profiles||'{}')[localStorage.pfActive||'pro']||{});const t=await ai(coachPrompt(text,profileText(p)));
  if(!t)return;const [a,b,c]=t.split('||').map(x=>x.trim());$('#fr').insertAdjacentHTML('beforeend',`<p class="line fr">${esc(a)}</p>`);if(b&&b!=='-'){$('#rep').innerHTML=`<div class="reply">${bold(b)}<small>${esc(c&&c!=='-'?c:'')}</small></div>`;pushSay(b,c&&c!=='-'?c:'')}}
-$('#demo').onclick=async()=>{start();const L=[["So today we'll review the Q4 pipeline and decide on the pricing change.","Aujourd'hui on passe en revue le pipeline du T4 et on décide du changement de prix.",null],["Sarah, can you confirm the numbers by Friday?","On demande à Sarah de confirmer les chiffres d'ici vendredi.",["Yes, I can send them by Friday.","Oui, je peux les envoyer d'ici vendredi."]],["Any questions before we move on?","Le présentateur demande s'il y a des questions.",["No questions, thank you.","Pas de questions, merci."]]];
+$('#demo').onclick=async()=>{start();stt("Mode démo : texte d'exemple, sans son.",'w');const L=[["So today we'll review the Q4 pipeline and decide on the pricing change.","Aujourd'hui on passe en revue le pipeline du T4 et on décide du changement de prix.",null],["Sarah, can you confirm the numbers by Friday?","On demande à Sarah de confirmer les chiffres d'ici vendredi.",["Yes, I can send them by Friday.","Oui, je peux les envoyer d'ici vendredi."]],["Any questions before we move on?","Le présentateur demande s'il y a des questions.",["No questions, thank you.","Pas de questions, merci."]]];
  for(const l of L){await new Promise(r=>setTimeout(r,700));add(...l)}};
 let stream;async function start(){$('#stop').classList.remove('hide');transcript=[];$('#fr').innerHTML='';$('#rep').innerHTML='';$('#en').innerHTML=''}
-$('#start').onclick=async()=>{try{stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true});
- if(!stream.getAudioTracks().length){alert("Aucun son partagé. Cochez « Partager l'audio de l'onglet ».");return}
- start();const {pipeline}=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3');
- $('#en').innerHTML='<span class="mut">Chargement du modèle de transcription (1re fois ~1 min)…</span>';
- const asr=await pipeline('automatic-speech-recognition','onnx-community/whisper-base.en',{device:'webgpu'}).catch(()=>pipeline('automatic-speech-recognition','onnx-community/whisper-base.en'));
- $('#en').innerHTML='';const ac=new AudioContext({sampleRate:16000}),src=ac.createMediaStreamSource(new MediaStream(stream.getAudioTracks())),proc=ac.createScriptProcessor(4096,1,1);let buf=[];
- proc.onaudioprocess=e=>buf.push(new Float32Array(e.inputBuffer.getChannelData(0)));src.connect(proc);proc.connect(ac.destination);
- const loop=async()=>{if(!stream.active)return;const n=buf.length;if(n>=30){const a=new Float32Array(buf.splice(0,n).reduce((s,x)=>s+x.length,0));let o=0;/*recompose*/}
-  setTimeout(loop,500)};loop();
- // découpe par fenêtres de ~8 s
- let chunks=[];proc.onaudioprocess=async e=>{chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));if(chunks.length>=32){const len=chunks.reduce((s,x)=>s+x.length,0),a=new Float32Array(len);let o=0;for(const c of chunks){a.set(c,o);o+=c.length}chunks=[];const r=await asr(a);const t=(r.text||'').trim();if(t.length>3){add(t);explain(t)}}};
- }catch(e){alert('Capture impossible : '+e.message)}};
+const stt=(t,c)=>{$('#sttT').textContent=t;$('#stbar').dataset.c=c||''};const lvl=v=>{$('#lvlB').style.width=Math.min(100,Math.round(v*900))+'%'};
+const MODEL='onnx-community/whisper-base.en',CDN='https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
+async function go(mode){try{
+ if(mode==='mic'){stt('Autorisez le micro dans la fenêtre du navigateur (test seule, aucun enregistrement).','w');stream=await navigator.mediaDevices.getUserMedia({audio:true})}
+ else{stt("Choisissez l'ONGLET de la réunion et cochez « Partager l'audio de l'onglet ».",'w');stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:true})}
+ if(!stream.getAudioTracks().length){stream.getTracks().forEach(t=>t.stop());stt("Aucun son partagé. Recommencez : choisissez un ONGLET (pas une fenêtre) et cochez « Partager l'audio de l'onglet ».",'e');return}
+ start();stt('Téléchargement du moteur de transcription (1re fois : 1 à 2 minutes). Ne fermez pas la page.','w');
+ $('#en').innerHTML='<span class="mut">Préparation du moteur…</span>';
+ const {pipeline}=await import(CDN);
+ const prog=p=>{if(p.status==='progress'&&p.total)stt('Téléchargement du modèle : '+Math.round(p.loaded/p.total*100)+' %','w')};
+ let asr;try{asr=await pipeline('automatic-speech-recognition',MODEL,{device:'webgpu',progress_callback:prog})}catch(e){stt('Mode normal (plus lent) : chargement du modèle…','w');asr=await pipeline('automatic-speech-recognition',MODEL,{progress_callback:prog})}
+ $('#en').innerHTML='<span class="mut">Écoute en cours… le texte apparaît toutes les 5 secondes environ.</span>';first=true;
+ stt('Écoute en cours. Lancez le son de la réunion.','ok');
+ const ac=new AudioContext({sampleRate:16000}),src=ac.createMediaStreamSource(new MediaStream(stream.getAudioTracks())),proc=ac.createScriptProcessor(4096,1,1);
+ let chunks=[],busy=false,lastSound=Date.now();
+ stream.getVideoTracks()[0]?.addEventListener('ended',()=>stt('Partage arrêté. Cliquez de nouveau sur « Partager l\'onglet + son ».','w'));
+ proc.onaudioprocess=async e=>{const d=new Float32Array(e.inputBuffer.getChannelData(0));let m=0;for(const x of d)m=Math.max(m,Math.abs(x));lvl(m);if(m>0.01)lastSound=Date.now();chunks.push(d);
+  if(Date.now()-lastSound>15000&&!busy)stt("Aucun son détecté depuis 15 secondes. Vérifiez que la vidéo joue avec du son et que « Partager l'audio de l'onglet » était coché.",'e');
+  if(chunks.length>=20&&!busy){busy=true;const len=chunks.reduce((s,x)=>s+x.length,0),a=new Float32Array(len);let o=0;for(const c of chunks){a.set(c,o);o+=c.length}chunks=[];
+   try{if(Date.now()-lastSound<15000){stt('Transcription en cours…','ok')}
+    const r=await asr(a);const t=(r.text||'').replace(/\[[^\]]*\]|\([^)]*\)/g,'').trim();if(t.length>3){if(first){$('#en').innerHTML='';first=false}add(t);explain(t)}
+    if(Date.now()-lastSound<15000)stt('Écoute en cours.','ok')}
+   catch(err){stt('Problème de transcription : '+(err&&err.message||err),'e')}
+   busy=false}};
+ src.connect(proc);proc.connect(ac.destination);
+ }catch(e){stt('Problème : '+(e&&e.message||e)+'. Essayez avec Chrome ou Edge récent, sur ordinateur.','e')}}
+$('#start').onclick=()=>go('tab');$('#mic').onclick=()=>go('mic');
+let first=true;
 const NM='non mentionné';
 $('#stop').onclick=async()=>{stream?.getTracks().forEach(t=>t.stop());const text=transcript.join(' ');const title=$('#title').value||'Réunion sans titre';const notes=$('#notes').value;
  const raw=await ai(`Tu es secrétaire de séance expert. À partir de la transcription (anglais) et des notes ci-dessous, rédige en français un compte rendu professionnel. Réponds UNIQUEMENT par un JSON valide de la forme {"participants":[""],"ordre_du_jour":[""],"sujets":[{"titre":"","points":[""]}],"decisions":[""],"conclusions":[""],"actions":[{"action":"","responsable":"","delai":""}],"a_confirmer":[""],"resume":""}. Règles : phrases courtes, aucune invention ; si une information n'est pas dite, écris "non mentionné" (ou liste vide).\n\nNotes : ${notes}\n\nTranscription : ${text}`);
