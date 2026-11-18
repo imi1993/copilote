@@ -15,14 +15,28 @@ input,textarea{font:inherit;font-size:.7em;background:#10131a;color:var(--tx);bo
 .cr{background:#fff;color:#1b2333;border-radius:16px;padding:20px 22px;font-size:.62em;line-height:1.55}.cr h1{font-size:1.5em;margin:0 0 10px;color:#1f2a44}.cr h2{font-size:.9em;text-transform:uppercase;letter-spacing:.1em;color:#7a6a3c;border-bottom:1px solid #e3e6ec;margin:18px 0 6px;padding-bottom:3px}.cr h3{margin:10px 0 2px;font-size:1em}
 .cr .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#f4f5f8;border-radius:10px;padding:10px 14px}.cr ul{margin:3px 0;padding-left:1.1em}.cr .nm{color:#8a90a0;font-style:italic;margin:3px 0}.cr table{width:100%;border-collapse:collapse}.cr th{background:#1f2a44;color:#fff;text-align:left;padding:6px 8px}.cr td{border-bottom:1px solid #e3e6ec;padding:6px 8px;vertical-align:top}.cr .foot{color:#8a90a0;margin-top:16px}
 @media print{body{background:#fff}header,.tabs,.state,#lib .item,.noprint{display:none!important}.card{border:0}}
-</style></head><body>
-<header><h1>Copilote de réunion</h1><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></header>
+
+html[data-theme=light]{--bg:#e9ebef;--card:rgba(255,255,255,.72);--line:rgba(20,22,26,.12);--tx:#111318;--mut:#454c5a;--acc:#111318;--ok:#9be3c3}
+html[data-theme=light] body{background:radial-gradient(1100px 600px at 15% -10%,#f6f7f9,#e4e7ec 60%,#dcdfe5)}
+html[data-theme=light] h1{color:#111318;font-weight:600}
+html[data-theme=light] .card,html[data-theme=light] .item{backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(20,22,26,.08)}
+html[data-theme=light] button{background:rgba(255,255,255,.85);color:#111318;border-color:rgba(20,22,26,.25)}
+html[data-theme=light] button.p,html[data-theme=light] nav button.on,html[data-theme=light] .tabs button.on{background:#111318;color:#fff;border-color:#111318}
+html[data-theme=light] input,html[data-theme=light] textarea{background:rgba(255,255,255,.9);color:#111318;border-color:rgba(20,22,26,.25)}
+html[data-theme=light] .notice{color:#454c5a;border-color:rgba(20,22,26,.18)}
+html[data-theme=light] .key{background:#14161a;border-color:#14161a;color:#fff;--mut:#b4bbc8;--tx:#fff}
+html[data-theme=light] .key h2{color:#b4bbc8}
+html[data-theme=light] .key .reply{border-left-color:#fff}
+html[data-theme=light] .state{color:#111318}
+.tt{font-size:.5em}
+</style></head><body><script>document.documentElement.dataset.theme="light"</script>
+<header><h1>Copilote de réunion</h1><button id="theme">Clair / Sombre</button><button id="fm" aria-label="Texte plus petit">A−</button><button id="fp" aria-label="Texte plus grand">A+</button></header>
 <div class="state"><span class="dot" id="dot"></span><span id="st">Prêt. Cliquez sur l'icône du copilote (ou Alt+Maj+C) pendant la réunion.</span></div>
 <div class="tabs"><button class="on" data-t="live">Direct</button><button data-t="notes">Notes</button><button data-t="lib">Comptes rendus</button><button data-t="set">Réglages</button></div>
 <main>
-<section id="live"><div class="card"><h2>Anglais (en direct)</h2><div id="en" class="mut">En attente de l'audio…</div></div>
-<div class="card"><h2>Explication en français</h2><div id="fr"></div></div>
-<div class="card"><h2>Que répondre ?</h2><div id="rep"></div></div>
+<section id="live"><div class="card key"><h2>Anglais (en direct)</h2><div id="en" class="mut">En attente de l'audio…</div></div>
+<div class="card key"><h2>Explication en français</h2><div id="fr"></div></div>
+<div class="card key"><h2>Que répondre ?</h2><div id="rep"></div></div>
 <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="sum">Résumer les 5 dernières minutes</button><button class="p" id="end">Terminer + compte rendu</button></div></section>
 <section id="notes" class="hide"><div class="card"><h2>Nom de la réunion</h2><input id="title" placeholder="ex. Webinaire EWOR"><h2 style="margin-top:12px">Mes notes</h2><textarea id="nt" placeholder="Écrivez ici…"></textarea></div></section>
 <section id="lib" class="hide"><input id="q" placeholder="Rechercher…"><div id="list"></div><div id="detail"></div></section>
