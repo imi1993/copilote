@@ -1,6 +1,6 @@
 const $=s=>document.querySelector(s);const NM='non mentionné';let fs=22,transcript=[],sel=null;
 const setFs=v=>{fs=Math.max(16,Math.min(48,v));document.documentElement.style.setProperty('--fs',fs+'px');chrome.storage.local.set({fs})};
-chrome.storage.local.get(['fs'],r=>setFs(r.fs||22));$('#fm').onclick=()=>setFs(fs-3);$('#fp').onclick=()=>setFs(fs+3);
+chrome.storage.local.get(['fs'],r=>setFs(r.fs||22));chrome.storage.local.get(['theme'],r=>{document.documentElement.dataset.theme=r.theme||'light'});$('#theme').onclick=()=>{const d=document.documentElement;d.dataset.theme=d.dataset.theme==='light'?'dark':'light';chrome.storage.local.set({theme:d.dataset.theme})};$('#fm').onclick=()=>setFs(fs-3);$('#fp').onclick=()=>setFs(fs+3);
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x===b));for(const s of ['live','notes','lib','set'])$('#'+s).classList.toggle('hide',s!==b.dataset.t);if(b.dataset.t==='lib')renderList()});
 const esc=x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
 // états
